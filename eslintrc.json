@@ -1,0 +1,113 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "extends": [
+    "airbnb",
+    "plugin:import/typescript"
+  ],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly",
+    "JSX": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "react",
+    "@typescript-eslint",
+    "implicit-dependencies"
+  ],
+  "rules": {
+    "eqeqeq": 0,
+    "jsx-a11y/no-static-element-interactions": 0,
+    "jsx-a11y/click-events-have-key-events": 0,
+    "jsx-a11y/no-autofocus": 0,
+    "react/destructuring-assignment": 0,
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": ["error", { "functions": false, "classes": false }],
+    "@typescript-eslint/no-redeclare": ["error"],
+    "no-redeclare": 0,
+    "indent": 0,
+    "max-len": [
+      "warn",
+      {
+        "code": 150
+      }
+    ],
+    "import/extensions": 0,
+    "import/no-unresolved": 0,
+    "react/jsx-filename-extension": 0,
+    "import/namespace": 2,
+    "no-unused-vars": [
+      "off",
+      {
+        "vars": "all",
+        "args": "after-used",
+        "ignoreRestSiblings": false
+      }
+    ],
+    "no-underscore-dangle": [
+      "error",
+      {
+        "allowAfterThis": true
+      }
+    ],
+    "comma-dangle": [
+      "error",
+      "never"
+    ],
+    "react/prop-types": 0,
+    "class-methods-use-this": 0,
+    "@typescript-eslint/indent": [
+      "error",
+      2,
+      {
+        "SwitchCase": 1,
+        "FunctionDeclaration": {
+          "body": 1,
+          "parameters": 1
+        }
+      }
+    ],
+    "react/jsx-indent": [
+      "error",
+      2
+    ],
+    "react/jsx-indent-props": [
+      "error",
+      2
+    ],
+    "no-console": 0,
+    "no-useless-constructor": "warn",
+    "no-empty-function": "warn",
+    "max-classes-per-file": [
+      "error",
+      2
+    ],
+    "no-nested-ternary": "warn",
+    "implicit-dependencies/no-implicit": "error",
+    "no-plusplus": [
+      "error",
+      {
+        "allowForLoopAfterthoughts": true
+      }
+    ]
+  },
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [
+        ".d.ts",
+        ".ts",
+        ".tsx"
+      ]
+    }
+  }
+}
