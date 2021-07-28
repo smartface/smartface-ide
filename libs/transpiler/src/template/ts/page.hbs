@@ -1,0 +1,58 @@
+{{> header}}
+import pageContextPatch from '@smartface/contx/lib/smartface/pageContextPatch';
+import { Styleable, ViewType } from '{{coreLibPath}}/Styleable';
+import Page = require('@smartface/native/ui/page');
+import View = require('@smartface/native/ui/view');
+import { ComponentStyleContext } from 'generated/core/ComponentStyleContext';
+import System = require('@smartface/native/device/system');
+
+{{require smfObjects footer ""}}
+{{getRequiredIrregularEnums smfObjects}}
+{{getRequiredLibModules smfObjects ""}}
+{{!-- declare namespace {{capitalizeFirstLetter pageName}} {
+    export type ChildrenNames = {{#each children}} | {{json name}}{{/each}};
+} --}}
+class {{capitalizeFirstLetter pageName}} extends Page {
+    dispatch: (action: {[key: string]: any}) => void;
+    children: { [key: string]: any } = {};
+    
+    static $$styleContext: ComponentStyleContext = {
+	classNames: {{json footer.page.className}},
+	defaultClassNames: {{json footer.page.defaultClassNames}},
+		userProps: {{#isEmpty footer.page.props}} {} {{else}}{{> eachHelper props=footer.page.props }}{{/isEmpty}},
+	statusBar:{
+		classNames: {{json footer.statusBar.className}},
+		defaultClassNames: {{json footer.statusBar.defaultClassNames}},
+		userProps: {{#isEmpty footer.statusBar.props}} {} {{else}}{{> eachHelper props=footer.statusBar.props}}{{/isEmpty}}
+	},
+	headerBar:{
+		classNames: {{json footer.headerBar.className}},
+		defaultClassNames: {{json footer.headerBar.defaultClassNames}},
+		userProps: {{#isEmpty footer.headerBar.props}} {} {{else}}{{> eachHelper props=footer.headerBar.props}}{{/isEmpty}}
+	}};
+    {{#each componentsAssignedToPage}}{{name}}: StyleContextComponentType<{{klass}}>;{{/each}}
+    constructor(props?: any) {
+        super(Object.assign({ {{> onLoad footer}} {{#if footer.page.orientation}},orientation: Page.Orientation.{{footer.page.orientation}}{{/if}} }, props ));
+        {{#if footer.page.safeAreaEnabled}}this.ios && (this.ios.safeAreaLayoutMode = true);{{/if}}this.children["statusBar"] = this.statusBar || {};
+		this.children["headerBar"] = this.headerBar || {};
+        {{#each children}}this.addChildByName(new {{constructorName}}(), {{json name}});{{/each}}
+        {{#each componentsAssignedToPage}}this.{{name}} = {{ref}};{{/each}}
+        pageContextPatch(this, {{json name}});
+    }
+    addChild(child: View, name?: string, classNames?: string, userProps?: { [key: string]: any; }, defaultClassNames?: string): void {
+        if (this['layout']) {
+			this['layout'].addChild(child);
+		} else {
+			this.addChild(child);
+		}
+    }
+    addChildByName(child: View, name: string) {
+        this.children[name] = child;
+        this.addChild(child);
+    }
+}
+export default {{capitalizeFirstLetter pageName}};
+
+{{> body}}
+
+{{> footer footer}}

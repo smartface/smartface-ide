@@ -1,0 +1,73 @@
+    
+    //ListView data source.
+    var {{name}}DS = [{{#each items}}{
+      image: Image.createFromFile('images://imageview{{#if @index}}_off{{/if}}.png'),
+      title: 'ListItem {{this}}'
+    }{{#unless @last}},{{/unless}}{{/each}}];
+    
+    // This event will be fired when the ListView created ListViewItem template.
+    {{name}}.onRowCreate = function() {
+    	var myListViewItem = new ListViewItem();
+    	myListViewItem.flexDirection = FlexLayout.FlexDirection.ROW;
+    	myListViewItem.justifyContent = FlexLayout.JustifyContent.CENTER;
+    	myListViewItem.backgroundColor =  Color.TRANSPARENT;
+    	var borderBottom = new FlexLayout({
+    	    id: 100,
+    	    height: 1,
+    	    backgroundColor: Color.GRAY,
+    	    positionType: FlexLayout.PositionType.ABSOLUTE,
+    	    bottom: 0,
+    	    right: 10,
+    	    left: 10
+    	});
+    	var myImageView = new ImageView({
+    		id: 101,
+    		alignSelf: FlexLayout.AlignSelf.CENTER,
+    		justifyContent: FlexLayout.JustifyContent.CENTER,
+    		flexGrow: 1,
+    		maxWidth:  {{rowHeight}},
+    		margin: {{math rowHeight '/' '4' }},
+    		imageFillType: ImageFillType.ASPECTFIT,
+    		backgroundColor: Color.TRANSPARENT
+    	});
+    	var myLabelTitle = new Label({
+    		id: 102,
+    		alignSelf: FlexLayout.AlignSelf.CENTER,
+    		justifyContent: FlexLayout.JustifyContent.CENTER,
+    		flexGrow: 1,
+    		textAlignment: TextAlignment.MIDLEFT,
+    		backgroundColor: Color.TRANSPARENT
+    	});
+    	
+    	myListViewItem.addChild(myImageView);
+    	myListViewItem.addChild(myLabelTitle);
+    	myListViewItem.addChild(borderBottom);
+    	
+    	return myListViewItem;
+    };
+    
+    // This event will be fired when the ListView created row at specific index.
+    {{name}}.onRowBind = function(listViewItem, index) {
+    	var myImageView = listViewItem.findChildById(101),
+    		myLabelTitle = listViewItem.findChildById(102);
+    
+    	if (myImageView) {
+    		myImageView.image = {{name}}DS[index].image;
+    	}
+    	if (myLabelTitle) {
+    		myLabelTitle.text = {{name}}DS[index].title;
+    	}
+    };
+    
+    //This event will be fired when user clicks the row at specific index.
+    {{name}}.onRowSelected = function(listViewItem, index) {
+    	alert("Selected item → " + index);
+    };
+    
+    //This event fires when user swipes and releases the ListView's top.
+    {{name}}.onPullRefresh = function() {
+    	{{name}}.itemCount = {{name}}DS.length;
+    	{{name}}.refreshData();
+    	{{name}}.stopRefresh();
+    };
+    

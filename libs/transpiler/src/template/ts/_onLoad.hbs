@@ -1,0 +1,14 @@
+
+onLoad: () => {
+  {{#if headerBar.navigationItem }}
+  if(this.ios.navigationItem){
+    {{#each  headerBar.navigationItem}} this.ios.navigationItem.{{@key}} = {{json this}};{{/each}}
+    }
+    else{
+    {{#each  headerBar.attributes}} this.headerBar.{{@key}} = {{json this}};{{/each}}
+    }
+  {{else}}
+  {{#each  headerBar.attributes}} this.headerBar.{{@key}} = {{json this}};{{/each}}
+  {{/if}}
+  {{#each mapviewRefs}} {{this}}.android.prepareMap(); {{/each}}
+}

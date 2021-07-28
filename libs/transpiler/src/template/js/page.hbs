@@ -1,0 +1,47 @@
+{{> header}}
+const PageBase = require('@smartface/native/ui/page');
+const Page = extend(PageBase);
+import pageContextPatch from '@smartface/contx/lib/smartface/pageContextPatch';
+{{require smfObjects footer ""}}{{getRequiredIrregularEnums smfObjects}}
+{{getRequiredLibModules smfObjects ""}}
+
+function addChild(childName, ChildClass, pageInstance){
+	this.children =this.children || {};
+    this.children[childName] = new ChildClass(pageInstance);
+    if (this.layout)
+      this.layout.addChild(this.children[childName]);
+	else
+      this.addChild(this.children[childName]);
+}
+// Constructor
+	function {{capitalizeFirstLetter pageName}}(_super, props) {
+		// Initalizes super class for this page scope
+		_super(this, Object.assign({}, {
+			onLoad: onLoad.bind(this){{#if footer.page.orientation}}, orientation: PageBase.Orientation.{{footer.page.orientation}}{{/if}}
+		}, props || {}));{{#if footer.page.safeAreaEnabled}}this.ios && (this.ios.safeAreaLayoutMode = true);{{/if}}
+		this.children = {};
+		this.children["statusBar"] = this.statusBar || {};
+		this.children["headerBar"] = this.headerBar;
+		{{#each children}}addChild.call(this, {{json name}}, {{constructorName}}_, this);{{/each}}
+		pageContextPatch(this, {{json name}});
+	}
+	{{capitalizeFirstLetter pageName}}.$$styleContext = { 
+	classNames: {{json footer.page.className}},
+	defaultClassNames: {{json footer.page.defaultClassNames}},
+		userProps: {{#isEmpty footer.page.props}} {} {{else}}{{> eachHelper props=footer.page.props }}{{/isEmpty}},
+	statusBar:{
+		classNames: {{json footer.statusBar.className}},
+		defaultClassNames: {{json footer.statusBar.defaultClassNames}},
+		userProps: {{#isEmpty footer.statusBar.props}} {} {{else}}{{> eachHelper props=footer.statusBar.props}}{{/isEmpty}}
+	},
+	headerBar:{
+		classNames: {{json footer.headerBar.className}},
+		defaultClassNames: {{json footer.headerBar.defaultClassNames}},
+		userProps: {{#isEmpty footer.headerBar.props}} {} {{else}}{{> eachHelper props=footer.headerBar.props}}{{/isEmpty}}
+	}};
+const {{capitalizeFirstLetter pageName}}_ = Page({{capitalizeFirstLetter pageName}});
+{{> body}}
+
+{{> footer footer}}
+
+module.exports = {{capitalizeFirstLetter pageName}}_;

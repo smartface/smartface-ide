@@ -1,0 +1,35 @@
+{{> header}}
+
+{{require this footer "true"}} {{getRequiredIrregularEnums smfObjects}}
+{{getRequiredLibModules smfObjects "true"}}
+
+{{#if smfObjects}}{{#isRepeatedView type }}{{else}}
+function addChild(childName, ChildClass, componentInstance){
+	this.children =this.children || {};
+    this.children[childName] = new ChildClass(componentInstance);
+    if(this.layout)
+      this.layout.addChild(this.children[childName]);
+	else
+      this.addChild(this.children[childName]);
+}
+{{/isRepeatedView}}{{/if}}
+// Constructor
+	function  {{capitalizeFirstLetter libraryType}}(_super, props) {
+		// Initalizes super class for this component scope
+		{{#if layoutManager }} {{> gridViewBody layoutManager=./layoutManager }}{{/if}}
+		_super(this, {{#isEmpty attributes}}props{{else}}Object.assign({{> eachHelper props=attributes isAttribute="true" rawProps=./rawProps}}, props){{/isEmpty}});{{#isRepeatedView type }}{{> onRowCreate children=./smfObjects defaultItemType=./defaultItemType}} {{else}} {{#isEqual type "ShimmerFlexLayout"}} {{#if children.0.constructorName}} this.contentLayout = this.layout = new {{children.0.constructorName}}_(this); this.children={contentLayout: this.layout}; {{else}} this.contentLayout = this.layout = new FlexLayout({flexGrow: 1});  {{/if}}  {{else}} {{#each children}}addChild.call(this, {{json name}}, {{constructorName}}_, this);{{/each}} {{/isEqual}} {{/isRepeatedView}}{{#if usePageVariable}}componentInstance.{{name}} = this;{{/if}}
+	{{#if html}} 
+	var html =  {{getString "html" html ""}};
+	var attributedStrings = createAttributedStrings(html);
+	this.attributedText = attributedStrings.map( s => new AttributedString(propFactory.default(s)));
+	{{/if}}
+	}
+{{capitalizeFirstLetter libraryType}}.$$styleContext = { 
+	classNames: {{json className}},
+	defaultClassNames: {{json defaultClassNames}},
+	userProps: {{#isEmpty props}} {} {{else}}{{> eachHelper props=props}}{{/isEmpty}} };
+const {{capitalizeFirstLetter libraryType}}_ = {{type}}({{capitalizeFirstLetter libraryType}});
+
+{{> body}}
+
+module.exports = {{capitalizeFirstLetter libraryType}}_;

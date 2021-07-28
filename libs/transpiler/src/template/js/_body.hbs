@@ -1,0 +1,25 @@
+{{#each smfObjects}}
+	function {{varName}}(_super, pageInstance){
+	{{#if layoutManager }} {{> gridViewBody layoutManager=./layoutManager }}{{/if}}
+	_super(this
+	{{#isEmpty attributes}}
+		{{else}},{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}});
+	{{#isRepeatedView type}}
+		{{#if isLibraryComponent}}{{else}}{{#if isModuleComp}}{{else}}{{> onRowCreate children=./smfObjects defaultItemType=./defaultItemType}}{{/if}}{{/if}}{{else}}
+			{{#isEqual type "ShimmerFlexLayout"}}
+				{{#if children.0.constructorName}} this.contentLayout = this.layout = new {{children.0.constructorName}}_(pageInstance); this.children={contentLayout: this.layout}; {{else}}this.contentLayout = this.layout = ( this.layout || new FlexLayout({flexGrow: 1})); {{/if}} {{else}}
+					{{#each children}}addChild.call(this, {{json name}}, {{constructorName}}_, pageInstance);{{/each}}
+			{{/isEqual}}
+	{{/isRepeatedView}}
+	{{#if usePageVariable}}pageInstance.{{name}} = this;{{/if}}
+	{{#if html}}
+		var html = {{getString "html" html ""}}; var attributedStrings = createAttributedStrings(html); this.attributedText = attributedStrings.map( s => new AttributedString(propFactory.default(s)));
+	{{/if}}
+	} {{ varName}}.$$styleContext = { classNames: {{json className}},  defaultClassNames: {{json defaultClassNames}}, userProps:
+	{{#isEmpty props}} {}
+		{{else}}{{> eachHelper props=props}}{{/isEmpty}} }; const {{ varName}}_ =
+	{{#if isModuleComp}}{{libraryType}}{{else}}
+		{{#if isLibraryComponent}}{{libraryType}}{{else}}{{type}}{{/if}}
+	{{/if}}({{ varName}});
+	{{#if smfObjects}} {{> body footer=../footer pageName=../pageName}} {{/if}}
+	{{/each~}}

@@ -1,0 +1,209 @@
+{  
+  "messages":[  
+    {
+      "request":{
+        "id":"82df0f5d-8fa8-410b-8625-a2cc18035308",
+        "command":"getInfo"
+      },
+      "response":{  
+        "id":"82df0f5d-8fa8-410b-8625-a2cc18035308",
+        "success":true,
+        "data":{
+          "deviceID":"2677804f-97b2-4e59-9031-da02fa0ba504",
+          "deviceName":"Halit's Nexus",
+          "brandModel":"Nexus 5",
+          "brandName":"LG",
+          "os":"Android",
+          "osVersion":"6.0.1",
+          "smartfaceVersion":"5.0.0",
+          "screen":{  
+            "px":{  
+              "height":"800",
+              "width":"400"
+            },
+            "dp":{  
+              "height":"100",
+              "width":"50"
+            },
+            "screenDPI":"80"
+          },
+          "resourceFolderOrder": [
+            "drawable-xxhdpi",
+            "drawable-xxhdpi-landscape",
+            "drawable-xxhdpi-portrait",
+            "drawable-xxxhdpi",
+            "drawable-xhdpi",
+            "drawable-hdpi",
+            "drawable-mdpi"
+          ]
+        }
+      }
+    },
+    {  
+      "request":{  
+        "id":"2d456e0e-32f5-4eb8-927a-3ec96d0136bb",
+        "command":"start",
+        "data":"Project"
+      },
+      "response":{  
+        "id":"2d456e0e-32f5-4eb8-927a-3ec96d0136bb",
+        "success":true
+      }
+    },
+    {  
+      "request":{  
+        "id":"bd7b0aba-c82f-48c3-98e6-34424e30c64f",
+        "command":"stop",
+        "data":"Project"
+      },
+      "response":{  
+        "id":"bd7b0aba-c82f-48c3-98e6-34424e30c64f",
+        "success":true
+      }
+    },
+    {  
+      "request":{  
+        "id":"c9866452-ac59-4e82-924e-82f9b20a3610",
+        "command":"getFiles",
+        "data":{  
+          "projectID":"https://someurl.com",
+          "files":{  
+            "asset://database.sqlite":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":-1499908807
+            },
+            "font://Arial_b.ttf":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":-1255975984
+            },
+            "font://Arial_i.ttf":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":346911346
+            },
+            "font://Arial_n.ttf":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":720182496
+            },
+            "font://Verdana_b.ttf":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":573404636
+            },
+            "font://Verdana_i.ttf":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":1431499808
+            },
+            "font://Verdana_n.ttf":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":1477025527
+            },
+            "font://Times.New.Roman_b.ttf":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":-676432946
+            },
+            "font://Times.New.Roman_i.ttf":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":-230108256
+            },
+            "font://Times.New.Roman_n.ttf":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":1375690199
+            },
+            "script://Global.Smartface.js":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":-1119521992
+            },
+            "script://Language.Smartface.js":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":1602418839
+            },
+            "script://Page1.js":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":1821167735
+            },
+            "script://SplashPage.Smartface.js":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":-1607471659
+            },
+            "script://sub/script.js":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":0
+            },
+            "image://buttondefault.png?density=drawable-xxhdpi":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":405398155
+            },
+            "image://buttonhighlighted.png?density=drawable-xxhdpi":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":1257691173
+            },
+            "image://default_pagebg.png?density=drawable-xxhdpi":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":1936478456
+            },
+            "image://defaultsplash.png?density=drawable-xxhdpi":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":569966015
+            },
+            "image://icon.png?density=drawable-xxhdpi":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":-1708446314
+            },
+            "image://logo.png?density=drawable-xxhdpi":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":-1445955935
+            },
+            "image://smartface.png?density=drawable-xxhdpi":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":2102325627
+            },
+            "image://buttoninactive.png?density=drawable-xhdpi":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":2033801314
+            },
+            "image://onlydrawable.png?density=drawable":{  
+              "date":"Wed Dec 23 2015 09:54:08 GMT+0200 (EET)",
+              "crc":-693850255
+            }
+          }
+        }
+      },
+      "response":{  
+        "id":"c9866452-ac59-4e82-924e-82f9b20a3610",
+        "success":true
+      }
+    },
+    {  
+      "request":{  
+        "id":"8d5591a8-1882-4255-8bda-64d724533a34",
+        "command":"ping"
+      },
+      "response":{  
+        "id":"8d5591a8-1882-4255-8bda-64d724533a34",
+        "success":true
+      }
+    },
+    {  
+      "request":{  
+        "id":"a18fb33c-fd18-4750-ae7c-7aac9b2884fc",
+        "command":"erase"
+      },
+      "response":{  
+        "id":"a18fb33c-fd18-4750-ae7c-7aac9b2884fc",
+        "success":true
+      }
+    },
+    {  
+      "request":{  
+        "id":"cd9576dd-5575-4018-b1d7-ae7c7be16ec9",
+        "command":"openUrl",
+        "data":{  
+          "url":"http://www.smartface.io"
+        }
+      },
+      "response":{  
+        "id":"cd9576dd-5575-4018-b1d7-ae7c7be16ec9",
+        "success":true
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{{#isEmpty props}}{{else}}{{getNewLine}} { {{#each props as |prop key|}}{{#if prefix}}{{prefix}}{{/if}}{{key}}: {{#isValidObject prop}} {{> eachHelper props=prop isAttribute=../isAttribute}}{{else}} {{#if ../isAttribute}} {{getString key prop ""}}{{else}}{{json prop }}{{/if}} {{/isValidObject}}{{#unless @last}},{{/unless}}{{getNewLine}}{{/each}} } {{/isEmpty}} 

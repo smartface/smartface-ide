@@ -1,0 +1,32 @@
+{
+  "name": "@smartface/library-reader",
+  "version": "1.0.1",
+  "description": "Reads and writes to library files.",
+  "dependencies": {
+    "async": "^2.6.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "index.js",
+  "typings": "index.d.ts",
+  "devDependencies": {
+    "@types/async": "^2.4.2",
+    "typescript": "4.2.4"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "prepublish": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smartface/smartface-native.git"
+  },
+  "author": "Smartface",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/smartface/smartface-native/issues"
+  },
+  "homepage": "https://github.com/smartface/smartface-native#readme"
+}

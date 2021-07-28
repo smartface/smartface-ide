@@ -1,0 +1,19 @@
+
+ /**
+ * @event onLoad
+ * This event is called once when page is created. You can create views and add them to page in this callback.
+ */
+function onLoad() {
+  // HeaderBar props
+  {{#if headerBar.navigationItem }}
+  if(this.ios.navigationItem){
+    {{#each  headerBar.navigationItem}} this.ios.navigationItem.{{@key}} = {{json this}};{{/each}}
+    }
+    else{
+    {{#each  headerBar.attributes}} this.headerBar.{{@key}} = {{json this}};{{/each}}
+    }
+  {{else}}
+  {{#each  headerBar.attributes}} this.headerBar.{{@key}} = {{json this}};{{/each}}
+  {{/if}}
+  {{#each mapviewRefs}} {{this}}.android.prepareMap(); {{/each}}
+}

@@ -1,0 +1,172 @@
+{
+	"components": [
+		{
+			"type": "Page",
+			"id": "79af-b157-34fa-5fa3",
+			"initialized": true,
+			"userProps": {},
+			"className": ".page",
+			"version": "6.5.3-rc.10",
+			"props": {
+				"name": "newPage001",
+				"children": [
+					"eb40-372d-c814-285b",
+					"50ce-ae51-637e-7747",
+					"74f0-12e3-3c5d-428b",
+					"56ff-b4ea-db7d-0716",
+					"25b2-4255-0f6b-f550",
+					"16b2-4f64-564a-604f"
+				],
+				"parent": null,
+				"orientation": "PORTRAIT"
+			}
+		},
+		{
+			"type": "StatusBar",
+			"id": "eb40-372d-c814-285b",
+			"userProps": {},
+			"className": ".statusBar",
+			"props": {
+				"name": "statusBar",
+				"children": [],
+				"parent": "79af-b157-34fa-5fa3",
+				"isRemovable": false
+			}
+		},
+		{
+			"type": "HeaderBar",
+			"id": "50ce-ae51-637e-7747",
+			"userProps": {
+				"title": "newPage001"
+			},
+			"className": ".headerBar",
+			"props": {
+				"name": "headerBar",
+				"title": "newPage001",
+				"children": [],
+				"parent": "79af-b157-34fa-5fa3",
+				"isRemovable": false
+			}
+		},
+		{
+			"type": "Button",
+			"id": "74f0-12e3-3c5d-428b",
+			"userProps": {
+				"text": "button",
+				"font": {
+					"size": 24
+				}
+			},
+			"className": ".button",
+			"props": {
+				"name": "button1",
+				"text": "button",
+				"children": [],
+				"parent": "79af-b157-34fa-5fa3"
+			}
+		},
+		{
+			"type": "Button",
+			"id": "56ff-b4ea-db7d-0716",
+			"userProps": {
+				"text": "Button",
+				"left": 0,
+				"top": 0,
+				"font": {
+					"size": 50,
+					"family": "Default"
+				}
+			},
+			"className": ".button",
+			"props": {
+				"name": "button1_1_1",
+				"text": "Button",
+				"children": [],
+				"parent": "79af-b157-34fa-5fa3"
+			}
+		},
+		{
+			"type": "FlexLayout",
+			"id": "25b2-4255-0f6b-f550",
+			"hiddenComponent": false,
+			"source": {
+				"page": "__library__",
+				"type": "LookbookItem",
+				"id": "4a13-68fd-e0c7-dcfd"
+			},
+			"userProps": {
+				"top": 0,
+				"width": 367.6923076923077,
+				"height": 250.76923076923077,
+				"backgroundColor": "rgba( 231, 143, 143, 0.64 )",
+				"flexProps": {
+					"justifyContent": "CENTER",
+					"alignItems": "CENTER",
+					"positionType": "RELATIVE"
+				},
+				"flex": {
+					"justifyContent": 1,
+					"alignItems": 2,
+					"positionType": 0
+				}
+			},
+			"className": ".flexLayout .flexLayout-default",
+			"props": {
+				"name": "LookbookItem",
+				"children": [],
+				"parent": "79af-b157-34fa-5fa3"
+			}
+		},
+		{
+			"type": "ListView",
+			"id": "16b2-4f64-564a-604f",
+			"userProps": {
+				"flexProps": {},
+				"width": 346.15384615384613,
+				"height": 201.53846153846152
+			},
+			"className": ".listView",
+			"props": {
+				"name": "listView1",
+				"children": [
+					"2b84-ae15-f259-260f"
+				],
+				"parent": "79af-b157-34fa-5fa3"
+			}
+		},
+		{
+			"type": "ListViewItem",
+			"id": "2b84-ae15-f259-260f",
+			"hiddenComponent": false,
+			"source": {
+				"page": "__library__",
+				"type": "flShoppingBagItem",
+				"id": "5be9-8547-09ac-6568"
+			},
+			"userProps": {
+				"left": 0,
+				"top": 0,
+				"width": null,
+				"height": 60,
+				"marginRight": null,
+				"right": null,
+				"flexProps": {
+					"flexDirection": "ROW",
+					"justifyContent": "CENTER",
+					"positionType": "RELATIVE"
+				},
+				"flex": {
+					"flexDirection": 2,
+					"justifyContent": 1,
+					"positionType": 0
+				}
+			},
+			"className": ".listViewItem",
+			"props": {
+				"name": "flShoppingBagItem",
+				"children": [],
+				"parent": "16b2-4f64-564a-604f"
+			}
+		}
+	]
+}

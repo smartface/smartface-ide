@@ -1,0 +1,43 @@
+{{#each smfObjects}}
+	class {{varName}} extends {{#if isModuleComp}}{{libraryType}}{{else}}
+		{{#if isLibraryComponent}}{{libraryType}}{{else}}{{type}}{{/if}}
+	{{/if}} implements Styleable {
+    dispatch: (action: {[key: string]: any}) => void;{{#if smfObjects}} {{#isRepeatedView type}} {{else}}children: { [key: string]: any } = {};{{/isRepeatedView}}{{/if}}
+    static $$styleContext: ComponentStyleContext = { classNames: {{json className}},  defaultClassNames: {{json defaultClassNames}}, userProps:
+	{{#isEmpty props}} {} {{else}}{{> eachHelper props=props}}{{/isEmpty}} };
+	{{#isRepeatedView type}}
+        private itemIndex = 0;
+	{{/isRepeatedView}}
+    {{#isEqual type "ShimmerFlexLayout"}}
+        layout: FlexLayout;
+    {{/isEqual}}
+	constructor() {
+    super(
+    {{#if layoutManager }} { {{> gridViewBody layoutManager=./layoutManager }} {{#isEmpty attributes}}{{else}},...{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}}    } {{else}}
+	{{#isEmpty attributes}}{{else}}{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}} {{/if}});{{#if mtbTestId}}this.materialTextBox.testId='{{mtbTestId}}';{{/if}}
+    {{#isRepeatedView type}} {{else}}
+        {{#isEqual type "ShimmerFlexLayout"}}
+            {{#if children.0.constructorName}}this.contentLayout = new {{children.0.constructorName}}(); this.layout = this.contentLayout; this.children['contentLayout'] = this.layout;{{else}}this.contentLayout = ( this.layout || new FlexLayout({flexGrow: 1})); this.layout = this.contentLayout; {{/if}} {{else}}
+                {{#each children}}this.addChildByName({{#if usePageVariable}}this.{{name}}{{else}}new {{constructorName}}(){{/if}}, {{json name}});{{/each}}
+        {{/isEqual}}
+    {{/isRepeatedView}}
+    {{#if html}} 
+        const html =  {{getString "html" html ""}};
+        const attributedStrings = createAttributedStrings(html);
+        this.attributedText = attributedStrings.map(s => new AttributedString(propFactory(s)));
+    {{/if}}
+    {{#isRepeatedView type}}
+		{{#if isLibraryComponent}}{{else}}{{#if isModuleComp}}{{else}}{{> onRowCreate children=./smfObjects defaultItemType=./defaultItemType}}{{/if}}{{/if}}{{else}}
+	{{/isRepeatedView}}
+    }
+    {{#if smfObjects}} {{#isRepeatedView type}} {{else}} addChildByName(child: View, name: string) {
+        this.children[name] = child;
+        if (this['layout']) {
+            this['layout'].addChild(child);
+        } else {
+            this.addChild(child);
+        }
+    }{{/isRepeatedView}}{{/if}}
+	}  
+	{{#if smfObjects}} {{> body footer=../footer pageName=../pageName}} {{/if}}
+	{{/each~}}

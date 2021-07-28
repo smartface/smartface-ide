@@ -1,0 +1,6 @@
+var itemIndex = 0;
+this.{{#isEqual defaultItemType "ListViewItem"}}onRowCreate{{else}}onItemCreate{{/isEqual}} = function(){
+	var item = new {{#if children}}{{children.0.varName}}_{{else}}{{#if defaultItemType}} {{defaultItemType}} {{else}}ListViewItem{{/if}}{{/if}}();
+	this.dispatch(actionAddChild(`item${++itemIndex}`, item));
+	return item;
+};

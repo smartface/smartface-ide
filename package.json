@@ -1,0 +1,21 @@
+{
+  "name": "smartface-ide-parent",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "workspaces": [
+    "libs/*"
+  ],
+  "scripts": {
+    "services:library": "env ROOT_PATH=/tmp/theiadev_projects/workspace yarn sfLibraryManager",
+    "services:transpiler": "env ROOT_PATH=/tmp/theiadev_projects/workspace yarn transpiler",
+    "services": "env ROOT_PATH=/tmp/theiadev_projects/workspace concurrently 'yarn transpiler' 'yarn sfLibraryManager' "
+  },
+  "author": "Cenk Cetinkaya <mail@cenkcetinkaya.com>",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^5.2.0",
+    "lerna": "^4.0.0",
+    "rimraf": "^3.0.2"
+  }
+}

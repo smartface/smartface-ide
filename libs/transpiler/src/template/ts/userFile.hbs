@@ -1,0 +1,10 @@
+import {{name}}Design from '{{requirePath}}';
+
+export default class {{name}} extends {{name}}Design {
+    pageName?: string | undefined;
+	constructor(props?: any, pageName?: string) {
+		// Initalizes super class for this scope
+		super(props);
+		this.pageName = pageName;
+	}
+}
