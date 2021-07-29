@@ -1,4 +1,4 @@
-const LibraryService = require("@smartface/library-service");
+const LibraryService = require("@smartface/library-reader");
 const chokidar = require('chokidar');
 
 let watcher;
