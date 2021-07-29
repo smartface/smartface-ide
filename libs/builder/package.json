@@ -1,6 +1,6 @@
 {
   "name": "@smartface/builder",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "smartface transpiler",
   "bin": {
     "smfcTranspiler": "bin/exec.js",
@@ -18,9 +18,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@smartface/html-to-text": "^1.0.5",
+    "@smartface/library-service": "^1.0.0",
     "@smartface/styler": "^1.3.8",
     "@smartface/xmlmergejs": "^1.0.0",
-    "@smartface/library-service": "^1.0.0",
     "async": "^2.5.0",
     "bytes": "^2.5.0",
     "chokidar": "^3.3.0",
