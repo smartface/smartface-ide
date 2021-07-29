@@ -1,6 +1,6 @@
 {
   "name": "@smartface/dispatcher",
-  "version": "0.3.0",
+  "version": "0.2.0",
   "description": "Handles Emulator Dispatcher Part of SmartfaceCloud",
   "main": "src/index.js",
   "publishConfig": {
