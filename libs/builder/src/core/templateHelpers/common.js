@@ -182,7 +182,7 @@ function getRequiredModules(_components, footer, isComponent) {
 
   searchAndSet(components);
 
-  if (footer) {
+  if (footer && footer.statusBar) {
     footer.statusBar.props.style && (requiredModules.StatusBarStyle = true);
   }
 

@@ -20,7 +20,7 @@ function checkComponentsTestID(pgxSource) {
     return dirty;
 }
 
-function writePgx(filePath, pgxSource){
+function writePgx(filePath, pgxSource) {
     fs.writeFileSync(filePath, JSON.stringify(pgxSource, null, '\t'), "utf8");
     console.log("├─ ℹ️  saved new source with tester-ids --> ", filePath);
 }

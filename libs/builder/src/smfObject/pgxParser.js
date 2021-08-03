@@ -95,7 +95,7 @@ function parsePgx(components) {
       footer[headerItem] = item;
     }
     else {
-      if (item.parentID == footer["page"].id) {
+      if (footer["page"] && item.parentID == footer["page"].id) {
         smfObjects.push(item);
         childrenOfPage.push({
           name: item.name,
@@ -116,8 +116,9 @@ function parsePgx(components) {
     //isLibraryPage && (item.className += " #" + getFamilyTree(componentById, component).reverse().join("_"));
   });
   footer.mapviewRefs = prepareMapviewRefs(componentById, components);
-  footer.pageName = footer.page.varName;
-  footer.page.safeAreaEnabled = !!components[0].userProps.safeAreaEnabled;
+  footer.pageName = footer.page ? footer.page.varName : '';
+  if(footer.page)
+      footer.page.safeAreaEnabled = !!components[0].userProps.safeAreaEnabled;
   var _smfObjects = footer.pageName === LIBRARY_PAGE_NAME ? smfObjects :
     smfObjects.filter(comp => !checkParentIsLibraryComp(comp, compsObject));
   setLibComponentsTypes(smfObjects);
@@ -127,7 +128,7 @@ function parsePgx(components) {
   //_smfObjects.reverse();
   return Object.assign({}, {
     initialized: components[0].initialized,
-    name: footer.page.name,
+    name: footer.page ? footer.page.name : '',
     pageName: footer.pageName,
     smfObjects: _smfObjects,
     footer: footer,

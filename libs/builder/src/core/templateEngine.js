@@ -36,10 +36,17 @@ const COMPILER_OPTIONS = {
   noEscape: true
 };
 
-module.exports = templateName => {
+module.exports = function compile(templateName) {
   return (data) => {
     const compiler = Handlebars.compile(__template[templateName], COMPILER_OPTIONS);
-    return prettier.format(compiler(data), getFormatterSettings());
+    try {
+        if(data.name === '')
+            return;
+        return prettier.format(compiler(data), getFormatterSettings());
+        
+    } catch (error) {
+        console.log("Error on compile : ", error.message, templateName, data);
+    }
   };
 };
 
