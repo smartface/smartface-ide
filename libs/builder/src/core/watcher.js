@@ -68,7 +68,7 @@ function Watcher(callBack) {
         return stop();
       if (filename === pgxFolder)
         return;
-      if (/library\/.*\.(pgx|cpx)/ig.test(filename)) {
+      if (new RegExp(`library${'\\'+path.sep}.*\.(pgx|cpx)`).test(filename)) {
         return; //skip library folder.
       }
       console.log("├─ 🔔  pgx ->", eventType, filename);
