@@ -20,12 +20,14 @@ const SERVICES = {
   DEBUGGER: 'debugger',
   UI: 'UI'
 };
+
 const CONSOLE_COMMANDS = [
   'console.log',
   'console.error',
   'console.info',
   'console.warn'
 ];
+
 const ALLOWED_SERVICES = [
   SERVICES.CONTROL,
   SERVICES.FILE_TRANSFER,
