@@ -28,7 +28,7 @@ export class ConfigurationService {
   join(){
   }
 
-  getOpts(){
+  getCliArguments(){
     return convertCLIArgsToOpts(this.args);
   }
 }

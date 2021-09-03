@@ -1,38 +1,23 @@
-import * as express from 'express';
-import * as cors from 'cors';
 import { ConfigurationService } from './modules/shared/ConfigurationService';
-import getCombinedWSS from './modules/shared/combineWSSExpress';
+import createWSS from './modules/shared/createWSS';
 import minimist = require('minimist');
-import LogToConsole from './modules/shared/LogToConsole';
-import { initRestServices } from './rest-services';
+import { initRestServices } from './init-rest';
+import { createWebServer } from './createServer';
 
 new ConfigurationService(minimist((process.argv.slice(2))));
-const opts = ConfigurationService.instance.getOpts();
-const logger = new LogToConsole(opts.meta.logToConsole, '[PROCESS]');
+const args = ConfigurationService.instance.getCliArguments();
 
-const app = express();
-app.use(cors());
-app.use(express.json({limit: '50mb'}));
-
-const logToConsole = opts.meta.logToConsole;
-const bypassSecurityCheck = opts.meta.bypassSecurityCheck;
-
-const exWSS = getCombinedWSS({
-    port: opts.ports.dispatcher,
-	server: null,
-    logToConsole,
-	host: opts.host
-}, app );
-
-const { wss } = exWSS;
-
-bypassSecurityCheck
-wss
+const [server, app] = createWebServer({port: args.ports.dispatcher, host: args.host});
+const wss = createWSS({
+    port: args.ports.dispatcher,
+	  server,
+  	host: args.host
+});
 
 initRestServices(app);
 
 process.on('uncaughtException', (err: any) => {
-  logger && logger.log(JSON.stringify({
+  console.log(JSON.stringify({
     err: 'Uncaught Exception',
     stack: err.stack && err.stack.toString(),
     msg: err.toString()
@@ -41,7 +26,7 @@ process.on('uncaughtException', (err: any) => {
 });
 
 process.on('unhandledRejection', (err: any) => {
-  logger && logger.log(JSON.stringify({
+  console.log(JSON.stringify({
     err: 'Unhandled Rejection',
     stack: err.stack && err.stack.toString(),
     msg: err.toString()
