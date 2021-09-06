@@ -13,12 +13,10 @@ function Service() {
     }
 
     if (self.eventEmitter) {
-      self.eventEmitter.removeListener('connection', onConnection);
       self.eventEmitter.removeListener('message', onMessage);
     }
 
     self.eventEmitter = emitter;
-    self.eventEmitter.on('connection', onConnection);
     self.eventEmitter.on('message', onMessage);
     self.fileService.init(emit, opts);
   };
@@ -26,12 +24,6 @@ function Service() {
   this.replaceWebsocket = function (ws) {
     self.fileService.replaceWebsocket(ws);
   };
-
-  function onConnection(data) {
-    if (!data.meta || data.meta.service !== FILE_SERVICE) {
-
-    }
-  }
 
   function onMessage(data) {
     if (skip(data.meta)) {

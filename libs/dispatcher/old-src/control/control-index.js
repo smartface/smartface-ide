@@ -13,13 +13,11 @@ function Service() {
         opts = opts || {};
 
         if (self.eventEmitter) {
-            self.eventEmitter.removeListener('connection', onConnection);
             self.eventEmitter.removeListener('data', onData);
             self.eventEmitter.removeListener('message', onData);
         }
 
         self.eventEmitter = emitter;
-        self.eventEmitter.on('connection', onConnection);
         self.eventEmitter.on('data', onData);
         self.eventEmitter.on('message', onData);
         self.controlService.init(emit, {
@@ -29,11 +27,6 @@ function Service() {
         log = new LogToConsole(opts.logToConsole, '[CONTROL]').log;
     };
 
-    function onConnection(data) {
-        if ((data.meta.from && data.meta.from === CONTROLSERVICE) || data.meta.service !== CONTROLSERVICE) {
-            return;
-        }
-    }
 
     function onData(data) {
         if (skip(data.meta))
@@ -66,7 +59,6 @@ function Service() {
         if (meta.to === CONTROLSERVICE || meta.to === "*") {
             return false;
         }
-
         return true;
     }
 

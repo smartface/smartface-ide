@@ -34,7 +34,7 @@ function ControlService() {
     getWorkspaceOptions();
   };
 
-  this.handleMessage = function (from, message, connectedObject) {
+  this.handleMessage = function (from, message) {
     log('Handle message from', from);
     if (callbackList[message.id]) {
       callbackList[message.id](null, message);
@@ -50,29 +50,6 @@ function ControlService() {
       if (message.command) {
         if (message.command === 'pingDevice') {
           self.ping();
-        } else if (message.command === 'start project') {
-          if (message.data.debugSupported) {
-            var randomID = uuid.v4();
-            var handledRespone = false;
-
-            if (global.shared.uiCommandEventEmiter) {
-              global.shared.uiCommandEventEmiter.once('resume project', sendDebugMessages);
-              global.shared.uiCommandEventEmiter.once('resumeFromSync', sendResumeFromSync);
-            }
-            const messageStartWithDebug = messageFactory.createMessage('start project', {
-              responseID: randomID,
-              debugger: message.data.debugger
-            });
-            sendRequest(UI, null, messageStartWithDebug);
-
-            var timeoutID = setTimeout(() => {
-              sendDebugMessages({
-                data: {}
-              });
-            }, 30000);
-          } else {
-            sendStartDebug();
-          }
         } else if (message.command === 'getIndex') {
           self.deviceInfo = message.data;
           global.shared.allDeviceInfos[self.deviceInfo.deviceID] = self.deviceInfo;
@@ -107,45 +84,6 @@ function ControlService() {
           sendRequest(DEVICE, null, messageFactory.createMessage(message.command));
         }
       }
-    }
-
-    function sendStartDebug(isDebugging) {
-      const { allUIWebsockets } = global.shared;
-      let messageResponse;
-
-      if (connectedObject && !allUIWebsockets[connectedObject.browserGuid]) {
-        isDebugging = false;
-      }
-      messageResponse = messageFactory.createMessage('resume project', {
-        debug: !!isDebugging,
-        waitForSync
-      });
-      messageResponse.id = message.id;
-      sendRequest(DEVICE, null, messageResponse);
-      log('Sending resume project to DEVICE with isDebugging:', !!isDebugging);
-    }
-
-    function sendDebugMessages(message) {
-      clearTimeout(timeoutID);
-      if (handledRespone) return;
-      handledRespone = true;
-      let isDebugging = (randomID === message.data.responseID && message.data.isDebugging);
-      if (isDebugging) {
-        isDebugging = !!debugSession.createNewSession(connectedObject, {
-          logToConsole: true
-        });
-        if (isDebugging) {
-          const messageAttach = messageFactory.createMessage('attach', {});
-          log('Attach issued');
-          sendRequest(UI, null, messageAttach);
-        }
-      }
-      sendStartDebug(isDebugging);
-    }
-
-    function sendResumeFromSync() {
-      const messageResumeFromSync = messageFactory.createMessage('resumeFromSync', {});
-      sendRequest(DEVICE, null, messageResumeFromSync);
     }
   };
 

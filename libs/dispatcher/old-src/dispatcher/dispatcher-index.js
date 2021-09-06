@@ -205,24 +205,12 @@ function ackErrorGenerator(message) {
   };
 }
 
-function handleDeviceMessageToUI(eventEmitter, connectedObject, service, message) {
+function handleDeviceMessageToUI(connectedObject, service, message) {
   // TODO: security to be handled later
   const { browserGuid } = connectedObject;
   const ws = findUIWebSocket(browserGuid);
 
-  if (service === 'debugger') {
-    if (ws !== false) {
-      // ws.send(JSON.stringify(message));
-    }
-    const ds = debugSession.getCurrentSession();
-    DEBUG_WEBSOCKET = ds && ds.getWsDebugProxy();
-    if (DEBUG_WEBSOCKET && DEBUG_WEBSOCKET.readyState === WebSocket.OPEN) {
-      log('- SENDING DEBUG_WEBSOCKET message');
-      DEBUG_WEBSOCKET.send(JSON.stringify(message));
-    } else {
-      log('[ERROR] DEBUG_WEBSOCKET does not exist');
-    }
-  } else if (CONSOLE_COMMANDS.indexOf(message.command) !== -1) {
+if (CONSOLE_COMMANDS.indexOf(message.command) !== -1) {
     message.connectedObject = connectedObject;
     if (ws === false) {
       log('UI Websocket not found for: ', browserGuid, ' --> send msg to all of them');
@@ -246,10 +234,6 @@ function handleDeviceMessageToUI(eventEmitter, connectedObject, service, message
 }
 
 function emitMessageFromDevice(eventEmitter, connectedObject, service, message) {
-  if (service === 'debugger') {
-    handleDeviceMessageToUI(eventEmitter, connectedObject, service, message);
-    return;
-  }
   if (message && message.command) {
     if (CONSOLE_COMMANDS.indexOf(message.command) !== -1) {
       // Send deviceInfo too
@@ -309,14 +293,6 @@ function setupConnectedWebSocketForDevice(ws, service, connectedObject) {
         logToConsole,
         bypassSecurityCheck
       });
-    } else if (service === SERVICES.DEBUGGER) {
-      log('- Sending message back to device on debugger');
-      wsServicesParent.initialized.push(service);
-      const message = {
-        id: 1,
-        command: 'start'
-      };
-      handleDeviceMessageToUI(eventEmitter, connectedObject, service, message);
     }
   } else if (service === SERVICES.FILE_TRANSFER) {
     wsServicesParent.instances[service].replaceWebsocket(ws);
