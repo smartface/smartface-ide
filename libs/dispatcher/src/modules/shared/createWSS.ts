@@ -1,8 +1,6 @@
 import { execSync } from 'child_process';
 
-import { Express } from 'express';
 import * as WebSocket from 'ws';
-import LogToConsole from './LogToConsole';
 
 
 /**

@@ -27,30 +27,6 @@ function UIService() {
         log("UIService init");
     };
 
-    this.handleMessage = function(from, message) {
-        if (callbackList[message.id]) {
-            callbackList[message.id](null, message);
-        }
-        else {
-            if (message.command) {
-                commandEventEmitter.emit(message.command, message);
-                log("Command recieved:", message.command);
-            }
-        }
-    };
-
-    commandEventEmitter.on("stopDebug", function stopDebug(message) {
-        global.shared.debuggerAttachIssued = false;
-        var messageStop = messageFactory.createMessage("stop", {});
-        sendRequest(DEVICE, null, messageStop);
-    });
-
-    function sendRequest(to, command, message, callback) {
-        if (callback) {
-            callbackList[message.id] = callback;
-        }
-        request(MESSAGE, to, command, message);
-    }
 }
 
 module.exports = UIService;

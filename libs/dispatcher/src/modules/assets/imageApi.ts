@@ -20,7 +20,7 @@ const IMAGE_FORMAT = {
 export default function createImageApi(app: Express, options: any = {}) {
   const wsPath = ConfigurationService.instance.getWorkspacePath();
   const tempPath = ConfigurationService.instance.getTempPath();
-  const logger = new LogToConsole(options.logToConsole, '[IMAGE]');
+  const logger = LogToConsole.instance;
   logger.log('image serving ready...');
   app.get(ConfigurationService.baseImageServePath + "/:imageName", (req: Request, res: Response, next: NextFunction) => {
         var device = {

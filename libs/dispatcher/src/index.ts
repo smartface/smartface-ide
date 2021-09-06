@@ -3,7 +3,9 @@ import createWSS from './modules/shared/createWSS';
 import minimist = require('minimist');
 import { initRestServices } from './init-rest';
 import { createWebServer } from './createServer';
+import LogToConsole from './modules/shared/LogToConsole';
 
+new LogToConsole();
 new ConfigurationService(minimist((process.argv.slice(2))));
 const args = ConfigurationService.instance.getCliArguments();
 

@@ -344,14 +344,6 @@ function setupConnectedWebSocketForUI(ws, service, connectedObject) {
   const wsServicesParent = allUIWebsockets[browserGuid];
   const { eventEmitter } = wsServicesParent;
 
-  if (wsServicesParent.initialized.indexOf(SERVICES.UI) === -1) {
-    wsServicesParent.initialized.push(SERVICES.UI);
-    wsServicesParent.instances[SERVICES.UI] = new UIService();
-    wsServicesParent.instances[SERVICES.UI].init(eventEmitter, {
-      logToConsole
-    });
-  }
-
   ws.on('message', (message) => {
     log('\n[MESSAGE RECEIVED]:[', browserGuid, '/', service, ']:\n', message.command, '\n');
     parseEachJSON(message, (err, parsedMessage) => {

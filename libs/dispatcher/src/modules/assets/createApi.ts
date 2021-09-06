@@ -6,7 +6,6 @@ import LogToConsole from "../shared/LogToConsole";
 
 
 export default function createApi(app: Express) {
-  const logger = new LogToConsole(true, '[FILE]');
-  logger.log('file serving ready...');
+  LogToConsole.instance.log('file serving ready...');
   app.use('/files', express.static(join(ConfigurationService.instance.getWorkspacePath())));
 }

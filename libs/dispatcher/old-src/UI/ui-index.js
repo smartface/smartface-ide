@@ -7,7 +7,6 @@ function UI() {
     var log;
 
     self.eventEmitter = null;
-    self.UIService = new UIService();
 
     this.init = function(emitter, opts) {
         opts = opts || {};
@@ -37,11 +36,7 @@ function UI() {
 
     function onData(data) {
         if (skip(data.meta))
-            return;
-
-        var dataWithoutMeta = removeMeta(data);
-        
-        self.UIService.handleMessage(data.meta.from, dataWithoutMeta);
+            return;        
     }
 
     function addMeta(to, command, message) {
@@ -56,9 +51,6 @@ function UI() {
         return messageWithMeta;
     }
 
-    function removeMeta(data) {
-        return data.data;
-    }
 
     function skip(meta) {
         if (meta.from === UISERVICE)
