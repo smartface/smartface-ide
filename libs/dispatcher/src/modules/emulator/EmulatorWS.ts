@@ -1,5 +1,5 @@
 import WebSocket = require('ws');
-import { isConsoleCommands, isControlService, isFileService } from '../../core/services';
+import { isConsoleCommands } from '../../core/services';
 import LogToConsole from '../shared/LogToConsole';
 import WsMap from '../shared/WsMap';
 import parseEachJSON = require('ws-json-organizer');
@@ -9,14 +9,13 @@ export class EmulatorWS {
   static setDeviceWs(deviceId: string, deviceWsMapItem: EmulatorWS) {
     WsMap.instance.setDeviceWs(deviceId, deviceWsMapItem);
   }
-
   static clearDeviceWs(deviceId: string) {
     WsMap.instance.delDeviceWs(deviceId);
   }
   private logger: LogToConsole;
   private __serviceWsMap: Map<string, WebSocket>;
 
-  constructor(private ws: WebSocket, private deviceId: string, private browserGuid: string) {
+  constructor(private deviceId: string, private browserGuid: string) {
     this.logger = LogToConsole.instance;
     EmulatorWS.setDeviceWs(deviceId, this);
     this.deviceId;

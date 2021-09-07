@@ -2,7 +2,6 @@ import { execSync } from 'child_process';
 
 import * as WebSocket from 'ws';
 
-
 /**
  * @typedef {Object} getCombinedWSSResult
  * @prop {http.Server} server - HTTP Server object created on the way
@@ -16,18 +15,16 @@ import * as WebSocket from 'ws';
  * @return {getCombinedWSSResult} - wss and all created artifacts along the way
  */
 
-
-export default function createWSS({ port=8081, server, host='localhost'}) : WebSocket.Server {
+export default function createWSS({ port = 8081, server, host = 'localhost' }): WebSocket.Server {
   if (global.v8debug) {
     try {
       execSync(`fuser -k ${port}/tcp`);
     } catch (ex) {
-      console.error("Port has been already using");
+      console.error('Port has been already using');
       return;
     }
   }
-
-  const wss = new WebSocket.Server({port, host, server});
+  const wss = new WebSocket.Server({ host, server });
   console.info('WSS Server listening on', port);
   return wss;
 }

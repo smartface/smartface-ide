@@ -9,7 +9,7 @@ import WsMap from './WsMap';
 const KEEPALIVE_INTERVAL = 15000;
 
 new WsMap();
-export default function controllWSS(wss: WebSocket.Server) {
+export default function connectionResolver(wss: WebSocket.Server) {
   const logger = LogToConsole.instance;
   const wsMap = WsMap.instance;
   wss.on('connection', (ws: WebSocket | any) => {
@@ -74,7 +74,7 @@ export default function controllWSS(wss: WebSocket.Server) {
     } else {
       let emuWsItem = wsMap.getDeviceWs(deviceId);
       if (!emuWsItem) {
-        emuWsItem = new EmulatorWS(ws, deviceId, browserGuid);
+        emuWsItem = new EmulatorWS(deviceId, browserGuid);
       }
       emuWsItem.setupServiceWs(service, ws);
       logger.log('Connecting', service, deviceId);
