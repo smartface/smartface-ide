@@ -297,7 +297,6 @@ function setupConnectedWebSocketForDevice(ws, service, connectedObject) {
   } else if (service === SERVICES.FILE_TRANSFER) {
     wsServicesParent.instances[service].replaceWebsocket(ws);
   }
-
   ws.on('message', (message) => {
     parseEachJSON(message, (err, parsedMessage) => {
       if (err) {

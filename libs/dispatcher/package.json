@@ -54,7 +54,8 @@
     "minimist": "^1.2.5",
     "node-uuid": "^1.4.8",
     "project-json-combiner": "^1.0.1",
-    "ws": "^8.0.0"
+    "ws": "^8.0.0",
+    "ws-json-organizer": "^1.1.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
