@@ -1,17 +1,20 @@
 import WebSocket = require('ws');
-import { isAllowedService, isIDEService } from '../../core/services';
+import {
+  isAllowedConnection,
+  isIDEConnection,
+} from '../../core/connection';
 import { EmulatorWS } from '../emulator/EmulatorWS';
 import { hasAlreadyInitUIWs, initUIWs } from '../ide';
 import LogToConsole from './LogToConsole';
+import KeepAliveInterval from './util/KeepAliveInterval';
 import sendResetTimeout from './util/sendResetTimeout';
 import WsMap from './WsMap';
-
-const KEEPALIVE_INTERVAL = 15000;
 
 new WsMap();
 export default function connectionResolver(wss: WebSocket.Server) {
   const logger = LogToConsole.instance;
   const wsMap = WsMap.instance;
+  //Listen wss connections/clients
   wss.on('connection', (ws: WebSocket | any) => {
     let deviceId: string;
     let browserGuid: string;
@@ -21,7 +24,7 @@ export default function connectionResolver(wss: WebSocket.Server) {
       return;
     }
     const service = urlParts[1];
-    if (isIDEService(service)) {
+    if (isIDEConnection(service)) {
       // $HOST:$PORT/UI/$BROWSER_GUID/$SECURITY_GUID
       browserGuid = urlParts[2];
       deviceId = 'browser';
@@ -35,29 +38,20 @@ export default function connectionResolver(wss: WebSocket.Server) {
       deviceId = urlParts[2];
       browserGuid = urlParts[3];
     } else {
-      return logger.log('[ERROR] Url pattern is not supported', ws.upgradeReq.url);
+      return logger.error('[ERROR] Url pattern is not supported', ws.upgradeReq.url);
     }
     logger.log('Trying to connect for', service, deviceId);
 
-    if (!isAllowedService(service)) {
+    if (!isAllowedConnection(service)) {
       logger.log('Terminating ws request', service);
       return ws.terminate();
     }
 
-    const keepAliveInterval = setInterval(() => {
-      ws.send(
-        JSON.stringify({
-          command: 'keepAlive',
-          service,
-        }),
-        err => {
-          if (err) console.error(err);
-        }
-      );
-    }, KEEPALIVE_INTERVAL);
+    const keepAliveTimer = new KeepAliveInterval(ws, service);
+    keepAliveTimer.start();
 
     ws.on('close', () => {
-      clearInterval(keepAliveInterval);
+      keepAliveTimer.stop();
       sendResetTimeout.clear(deviceId);
       logger.info('Socket is closed by user');
     });
@@ -66,7 +60,7 @@ export default function connectionResolver(wss: WebSocket.Server) {
       logger.error('[ERROR]', 'Socket error : ', e);
     });
 
-    if (isIDEService(service)) {
+    if (isIDEConnection(service)) {
       if (!hasAlreadyInitUIWs(browserGuid)) {
         initUIWs(browserGuid, ws);
       }

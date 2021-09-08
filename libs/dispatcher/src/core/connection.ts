@@ -8,19 +8,19 @@ export const ALLOWED_SERVICES = [SERVICES.CONTROL, SERVICES.FILE_TRANSFER, SERVI
 
 const CONSOLE_COMMANDS = ['console.log', 'console.error', 'console.info', 'console.warn'];
 
-export function isAllowedService(service: string) {
+export function isAllowedConnection(service: string) {
   return ALLOWED_SERVICES.indexOf(service) !== -1;
 }
 
-export function isControlService(service: string) {
+export function isControlConnection(service: string) {
   return service === SERVICES.CONTROL;
 }
 
-export function isIDEService(service: string) {
+export function isIDEConnection(service: string) {
   return service === SERVICES.UI;
 }
 
-export function isFileService(service: string) {
+export function isFileTransferConnection(service: string) {
   return service === SERVICES.FILE_TRANSFER;
 }
 

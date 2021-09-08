@@ -22,7 +22,7 @@ function getIdeWs(browserGuid: string) {
   return null;
 }
 
-export function sendToIdeWs(browserGuid: string, parsedMessage: any) {
+export function sendToIDEWs(browserGuid: string, parsedMessage: any) {
   const ws = getIdeWs(browserGuid);
   if (ws) {
     ws.send(JSON.stringify(parsedMessage));
