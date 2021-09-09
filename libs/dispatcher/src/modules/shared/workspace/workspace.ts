@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const uuid = require('node-uuid');
 const CRC32 = require('crc-32');
-const walk = require('crc-32');
+const walk = require('walk');
 const reAsset = new RegExp(
   'Assets\\' + path.sep + '\\w+\\.(?:imageset|appiconset|launchimage)\\' + path.sep
 );

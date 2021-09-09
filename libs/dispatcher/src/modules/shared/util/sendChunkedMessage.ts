@@ -35,7 +35,6 @@ export default function sendChunkedMessage(
       errors.push('Error creating stream');
       return callback(errors);
     }
-    LogToConsole.instance.log('Sending part ' + i);
     let dataToSend = null;
     if (++i !== numOfChunks) {
       dataToSend = data.slice(offset, offset + MAX_CHUNK_SIZE);
@@ -43,6 +42,7 @@ export default function sendChunkedMessage(
     } else {
       dataToSend = data.slice(offset);
       send(dataToSend, true);
+      LogToConsole.instance.log('Sending last part ' + i);
       callback(null, dataLength);
     }
     offset += MAX_CHUNK_SIZE;
