@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
-
 import * as WebSocket from 'ws';
+
 
 /**
  * @typedef {Object} getCombinedWSSResult
@@ -15,7 +15,7 @@ import * as WebSocket from 'ws';
  * @return {getCombinedWSSResult} - wss and all created artifacts along the way
  */
 
-export default function createWSS({ port = 8081, server, host = 'localhost' }): WebSocket.Server {
+export default function createWSS({ port = 8081, server , host = 'localhost' }): WebSocket.Server {
   if (global.v8debug) {
     try {
       execSync(`fuser -k ${port}/tcp`);

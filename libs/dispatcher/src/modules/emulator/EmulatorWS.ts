@@ -3,24 +3,28 @@ import { isConsoleCommands } from '../../core/connection';
 import LogToConsole from '../shared/LogToConsole';
 import WsMap from '../shared/WsMap';
 import parseEachJSON = require('ws-json-organizer');
-import { sendToIDEWs } from '../ide';
+import { sendToIDEWebSocket } from '../ide';
 import GetFilesIndexCommand from './command/GetFilesIndexCommand';
 import ackErrorGenerator from '../shared/util/ackErrorGenerator';
 import sendChunkedMessage from '../shared/util/sendChunkedMessage';
 import createCommandMessage from '../shared/util/createCommandMessage';
 import GetFilesDataCommand from './command/GetFilesDataCommand';
+import { writeFileSync } from 'fs';
+import { CommandType, ConsoleCommandType, DeviceInfoType, GetFilesCommandType, GetIndexCommandType } from '../../core/CommandTypes';
+import { FileInfoType } from '../../core/WorkspaceIndexTypes';
+let counter = 0;
 
 export class EmulatorWS {
     static setDeviceWs(deviceId: string, deviceWsMapItem: EmulatorWS) {
-        WsMap.instance.setDeviceWs(deviceId, deviceWsMapItem);
+        WsMap.instance.setDeviceWebSocket(deviceId, deviceWsMapItem);
     }
     static clearDeviceWs(deviceId: string) {
-        WsMap.instance.delDeviceWs(deviceId);
+        WsMap.instance.delDeviceWebSocket(deviceId);
     }
     private logger: LogToConsole;
     private __serviceWsMap: Map<string, WebSocket>;
-    private __deviceInfo: any = {};
-    private __indexFiles: string[] = [];
+    private __deviceInfo: DeviceInfoType;
+    private __indexFiles: FileInfoType[] = [];
 
     constructor(private deviceId: string, private browserGuid: string) {
         this.logger = LogToConsole.instance;
@@ -39,35 +43,29 @@ export class EmulatorWS {
         }
         this.__serviceWsMap.set(service, ws);
         serviceWs.on('message', message => {
-            parseEachJSON(message.toString(), async (err, parsedMessage) => {
+            parseEachJSON(message.toString(), async (err, parsedMessage: CommandType) => {
+                writeFileSync(__dirname + '/../../../../log_received/' + counter++ + '.log', JSON.stringify(parsedMessage, null, '\t'))
                 if (err) {
                     return setTimeout(() => {
                         this.logger.error(err);
                         throw err;
                     }, 1);
                 }
-                this.logger.log(
-                    '\n[MESSAGE RECEIVED]:[',
-                    this.deviceId,
-                    '/',
-                    service,
-                    ']:',
-                    parsedMessage
-                );
+                this.logger.log(service, 'ws.onMessage', this.deviceId, parsedMessage);
                 if (parsedMessage.command && isConsoleCommands(parsedMessage.command)) {
                     //TODO add deviceInfo from getIndex Command
-                    sendToIDEWs(this.browserGuid, {
-                        ...parsedMessage,
+                    sendToIDEWebSocket(this.browserGuid, {
+                        ...(parsedMessage as ConsoleCommandType),
                         connectedObject: {
                             deviceId: this.deviceId,
                             browserGuid: this.browserGuid,
-                            deviceInfo: this.__deviceInfo || { deviceID: this.deviceId },
+                            deviceInfo: this.__deviceInfo,
                         },
                     });
                 } else if (parsedMessage.command === 'getIndex') {
-                    this.__deviceInfo = parsedMessage.data;
+                    this.__deviceInfo = (parsedMessage as GetIndexCommandType).data;
                     const data = await new GetFilesIndexCommand().execute({ deviceInfo: this.__deviceInfo });
-                    this.__indexFiles = data.files as string[];
+                    this.__indexFiles = data.files;
                     sendChunkedMessage(
                         serviceWs,
                         JSON.stringify(createCommandMessage('getFiles', data)),
@@ -77,7 +75,7 @@ export class EmulatorWS {
                 } else if (parsedMessage.command === 'getFiles') {
                     const zipData = await new GetFilesDataCommand().execute({
                         os: this.__deviceInfo.os,
-                        files: parsedMessage.data.files,
+                        files: (parsedMessage as GetFilesCommandType).data.files,
                         indexFiles: this.__indexFiles
                     });
                     sendChunkedMessage(

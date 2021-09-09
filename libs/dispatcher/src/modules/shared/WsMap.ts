@@ -2,42 +2,42 @@ import WebSocket = require('ws');
 import { EmulatorWS } from '../emulator/EmulatorWS';
 
 export default class WsMap {
-  static instance: WsMap;
-  static baseImageServePath = '/ui-editor/img';
-  __idews: Map<string, WebSocket>;
-  __devicews: Map<string, EmulatorWS>;
+    static instance: WsMap;
+    static baseImageServePath = '/ui-editor/img';
+    __idewebsocket: Map<string, WebSocket>;
+    __devicewebsocket: Map<string, EmulatorWS>;
 
-  constructor() {
-    WsMap.instance = this;
-    this.__idews = new Map<string, WebSocket>();
-    this.__devicews = new Map<string, EmulatorWS>();
-  }
+    constructor() {
+        WsMap.instance = this;
+        this.__idewebsocket = new Map<string, WebSocket>();
+        this.__devicewebsocket = new Map<string, EmulatorWS>();
+    }
 
-  setIdeWs(key: string, ws: WebSocket) {
-    this.__idews.set(key, ws);
-  }
+    setIDEWebSocket(key: string, ws: WebSocket) {
+        this.__idewebsocket.set(key, ws);
+    }
 
-  getIdeWs(key: string): WebSocket {
-    return this.__idews.get(key);
-  }
+    getIDEWebSocket(key: string): WebSocket {
+        return this.__idewebsocket.get(key);
+    }
 
-  getAllIdeWs(): IterableIterator<WebSocket> {
-    return this.__idews.values();
-  }
+    getAllIDEWebSocket(): IterableIterator<WebSocket> {
+        return this.__idewebsocket.values();
+    }
 
-  delIdeWs(key: string) {
-    return this.__idews.delete(key);
-  }
+    delIDEWebSocket(key: string) {
+        return this.__idewebsocket.delete(key);
+    }
 
-  setDeviceWs(key: string, emuWs: EmulatorWS) {
-    this.__devicews.set(key, emuWs);
-  }
+    setDeviceWebSocket(key: string, emuWs: EmulatorWS) {
+        this.__devicewebsocket.set(key, emuWs);
+    }
 
-  getDeviceWs(key: string): EmulatorWS {
-    return this.__devicews.get(key);
-  }
+    getDeviceWebSocket(key: string): EmulatorWS {
+        return this.__devicewebsocket.get(key);
+    }
 
-  delDeviceWs(key: string) {
-    return this.__devicews.delete(key);
-  }
+    delDeviceWebSocket(key: string) {
+        return this.__devicewebsocket.delete(key);
+    }
 }

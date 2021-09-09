@@ -1,10 +1,11 @@
+import { IncomingMessage } from 'http';
 import WebSocket = require('ws');
 import {
     isAllowedConnection,
     isIDEConnection,
 } from '../../core/connection';
 import { EmulatorWS } from '../emulator/EmulatorWS';
-import { hasAlreadyInitUIWs, initUIWs } from '../ide';
+import { hasAlreadyInitIDEWebSocket, initIDEWebSocket } from '../ide';
 import LogToConsole from './LogToConsole';
 import KeepAliveInterval from './util/KeepAliveInterval';
 import sendResetTimeout from './util/sendResetTimeout';
@@ -15,7 +16,7 @@ export default function connectionResolver(wss: WebSocket.Server) {
     const logger = LogToConsole.instance;
     const wsMap = WsMap.instance;
     //Listen wss connections/clients
-    wss.on('connection', (ws: WebSocket | any) => {
+    wss.on('connection', (ws: WebSocket & { upgradeReq: IncomingMessage}) => {
         let deviceId: string;
         let browserGuid: string;
         const url = ws.upgradeReq.url;
@@ -62,12 +63,12 @@ export default function connectionResolver(wss: WebSocket.Server) {
         });
 
         if (isIDEConnection(service)) {
-            if (!hasAlreadyInitUIWs(browserGuid)) {
-                initUIWs(browserGuid, ws);
+            if (!hasAlreadyInitIDEWebSocket(browserGuid)) {
+                initIDEWebSocket(browserGuid, ws);
             }
             logger.log('Connecting', service, browserGuid);
         } else {
-            let emuWsItem = wsMap.getDeviceWs(deviceId);
+            let emuWsItem = wsMap.getDeviceWebSocket(deviceId);
             if (!emuWsItem) {
                 emuWsItem = new EmulatorWS(deviceId, browserGuid);
             }

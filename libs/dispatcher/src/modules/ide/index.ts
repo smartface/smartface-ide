@@ -1,47 +1,42 @@
 import WsMap from '../shared/WsMap';
 import WebSocket = require('ws');
-import LogToConsole from '../shared/LogToConsole';
+import { ConsoleCommandType, DeviceInfoType } from '../../core/CommandTypes';
 
-export function initUIWs(browserGuid: string, ws: WebSocket) {
-  WsMap.instance.setIdeWs(browserGuid, ws);
+export function initIDEWebSocket(browserGuid: string, ws: WebSocket) {
+    WsMap.instance.setIDEWebSocket(browserGuid, ws);
 }
 
-export function removeUIWs(browserGuid: string) {
-  WsMap.instance.delIdeWs(browserGuid);
+export function removeIDEWebSocket(browserGuid: string) {
+    WsMap.instance.delIDEWebSocket(browserGuid);
 }
 
-export function hasAlreadyInitUIWs(browserGuid: string) {
-  return !!WsMap.instance.getIdeWs(browserGuid);
+export function hasAlreadyInitIDEWebSocket(browserGuid: string) {
+    return !!WsMap.instance.getIDEWebSocket(browserGuid);
 }
 
-function getIdeWs(browserGuid: string) {
-  const ws = WsMap.instance.getIdeWs(browserGuid);
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    return ws;
-  }
-  return null;
-}
-
-export function sendToIDEWs(browserGuid: string, parsedMessage: any) {
-  const ws = getIdeWs(browserGuid);
-  if (ws) {
-    ws.send(JSON.stringify(parsedMessage));
-  } else {
-    LogToConsole.instance.warn(
-      'UI Websocket not found for: ',
-      browserGuid,
-      ' --> send msg to all of them'
-    );
-    const itrIdeWs = WsMap.instance.getAllIdeWs();
-    while (itrIdeWs) {
-      const val = itrIdeWs.next();
-      if (val.done) {
-        return;
-      }
-      const wsItem = val.value;
-      if (wsItem.readyState === WebSocket.OPEN) {
-        wsItem.send(JSON.stringify(parsedMessage));
-      }
+function getIdeWebSocket(browserGuid: string) {
+    const ws = WsMap.instance.getIDEWebSocket(browserGuid);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        return ws;
     }
-  }
+    return null;
+}
+
+export function sendToIDEWebSocket(browserGuid: string, parsedMessage: ConsoleCommandType & { connectedObject: { browserGuid: string; deviceId: string; deviceInfo: DeviceInfoType } }) {
+    const ws = getIdeWebSocket(browserGuid);
+    if (ws) {
+        ws.send(JSON.stringify(parsedMessage));
+    } else {
+        const itrIdeWs = WsMap.instance.getAllIDEWebSocket();
+        while (itrIdeWs) {
+            const val = itrIdeWs.next();
+            if (val.done) {
+                return;
+            }
+            const wsItem = val.value;
+            if (wsItem.readyState === WebSocket.OPEN) {
+                wsItem.send(JSON.stringify(parsedMessage));
+            }
+        }
+    }
 }

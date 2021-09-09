@@ -1,8 +1,10 @@
+import { OSType } from '../../../core/CommandTypes';
+import { FileInfoType } from '../../../core/WorkspaceIndexTypes';
 import { ConfigurationService } from '../../shared/ConfigurationService';
 import FilePackager from './FilePackager';
 import { findFilePath, parse } from './URIParser';
 
-export function getFilesData(options: { files: any[]; os: string, indexFiles: any[] }): Promise<Buffer> {
+export function getFilesData(options: { files: string[]; os: OSType, indexFiles: FileInfoType[] }): Promise<Buffer> {
     const { os, files, indexFiles } = options;
     const isIOS = os === 'iOS';
     const basePaths = ConfigurationService.instance.getProjectPaths()[os];
