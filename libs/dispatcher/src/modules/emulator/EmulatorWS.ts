@@ -26,26 +26,26 @@ export class EmulatorWS {
     WsMap.instance.delDeviceWebSocket(deviceId);
   }
   private logger: LogToConsole;
-  private __serviceWsMap: Map<string, WebSocket>;
-  private __deviceInfo: DeviceInfoType;
-  private __indexFiles: FileInfoType[] = [];
+  private serviceWsMap: Map<string, WebSocket>;
+  private deviceInfo: DeviceInfoType;
+  private indexFiles: FileInfoType[] = [];
 
   constructor(private deviceId: string, private browserGuid: string) {
     this.logger = LogToConsole.instance;
     EmulatorWS.setDeviceWs(deviceId, this);
     this.deviceId;
-    this.__serviceWsMap = new Map();
+    this.serviceWsMap = new Map();
   }
 
   setupServiceWs(service: string, ws: WebSocket) {
-    let serviceWs: WebsocketWithStream = this.__serviceWsMap.get(service) as WebsocketWithStream;
+    let serviceWs: WebsocketWithStream = this.serviceWsMap.get(service) as WebsocketWithStream;
     if (serviceWs && serviceWs.readyState === WebSocket.OPEN) {
       LogToConsole.instance.log('Terminating existing websocket', service, this.deviceId);
       serviceWs.terminate();
     } else {
       serviceWs = ws as WebsocketWithStream;
     }
-    this.__serviceWsMap.set(service, ws);
+    this.serviceWsMap.set(service, ws);
     serviceWs.on('message', message => {
       parseEachJSON(message.toString(), async (err, parsedMessage: CommandType) => {
         if (err) {
@@ -62,13 +62,13 @@ export class EmulatorWS {
             connectedObject: {
               deviceId: this.deviceId,
               browserGuid: this.browserGuid,
-              deviceInfo: this.__deviceInfo,
+              deviceInfo: this.deviceInfo,
             },
           });
         } else if (parsedMessage.command === 'getIndex') {
-          this.__deviceInfo = (parsedMessage as GetIndexCommandType).data;
-          const data = await new GetFilesIndexCommand().execute({ deviceInfo: this.__deviceInfo });
-          this.__indexFiles = data.files;
+          this.deviceInfo = (parsedMessage as GetIndexCommandType).data;
+          const data = await new GetFilesIndexCommand().execute({ deviceInfo: this.deviceInfo });
+          this.indexFiles = data.files;
           sendChunkedMessage(
             serviceWs,
             JSON.stringify(createCommandMessage('getFiles', data)),
@@ -77,9 +77,9 @@ export class EmulatorWS {
           );
         } else if (parsedMessage.command === 'getFiles') {
           const zipData = await new GetFilesDataCommand().execute({
-            os: this.__deviceInfo.os,
+            os: this.deviceInfo.os,
             files: (parsedMessage as GetFilesCommandType).data.files,
-            indexFiles: this.__indexFiles,
+            indexFiles: this.indexFiles,
           });
           sendChunkedMessage(
             serviceWs,
@@ -109,7 +109,7 @@ export class EmulatorWS {
 
     serviceWs.on('close', e => {
       EmulatorWS.clearDeviceWs(this.deviceId);
-      this.__serviceWsMap.delete(service);
+      this.serviceWsMap.delete(service);
     });
   }
 }
