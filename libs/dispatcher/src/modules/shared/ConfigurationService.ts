@@ -6,9 +6,7 @@ import fs = require('fs');
 import { convertCLIArgsToOpts } from './util/convertCLIargs';
 import LogToConsole from './LogToConsole';
 
-export type ConfigurationPaths =
-  | minimist.ParsedArgs
-  | {
+export type ConfigurationPaths = minimist.ParsedArgs & {
       rootPath?: string;
     };
 

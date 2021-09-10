@@ -1,4 +1,6 @@
-export function convertCLIArgsToOpts(args) {
+import { ConfigurationPaths } from "../ConfigurationService";
+
+export function convertCLIArgsToOpts(args: ConfigurationPaths ) {
   const opts = {
     logToConsole: true, restart: false, v: false, bypassSecurityCheck: true,
     ports: { dispatcher: 8081 },

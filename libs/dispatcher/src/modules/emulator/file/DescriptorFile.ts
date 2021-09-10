@@ -6,7 +6,7 @@ export default class DescriptorFile {
     this.map = {};
   }
 
-  add(key, value) {
+  add(key: string, value: string) {
     this.map[key] = value;
   }
 
