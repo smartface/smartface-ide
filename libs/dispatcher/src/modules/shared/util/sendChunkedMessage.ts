@@ -1,7 +1,5 @@
 import WebSocket = require('ws');
 import LogToConsole from '../LogToConsole';
-import { writeFileSync } from 'fs';
-let counter = 0;
 
 const MAX_CHUNK_SIZE = 10240; // In terms of bytes > 10 Kb
 
@@ -38,11 +36,7 @@ export default function sendChunkedMessage(
   const numOfChunks = Math.ceil(dataLength / MAX_CHUNK_SIZE);
   let i = 0;
   let offset = 0;
-  writeFileSync(
-    __dirname + '/../../../../../log_sent/' + counter++ + '.log',
-    isBinary ? 'binary' : data,
-    'utf8'
-  );
+
   ws.stream(options, (err, send) => {
     if (err) {
       errors.push('Error creating stream');

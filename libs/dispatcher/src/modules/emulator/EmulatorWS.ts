@@ -9,7 +9,6 @@ import ackErrorGenerator from '../shared/util/ackErrorGenerator';
 import sendChunkedMessage, { WebsocketWithStream } from '../shared/util/sendChunkedMessage';
 import createCommandMessage from '../shared/util/createCommandMessage';
 import GetFilesDataCommand from './command/GetFilesDataCommand';
-import { writeFileSync } from 'fs';
 import {
   CommandType,
   ConsoleCommandType,
@@ -18,7 +17,6 @@ import {
   GetIndexCommandType,
 } from '../../core/CommandTypes';
 import { FileInfoType } from '../../core/WorkspaceIndexTypes';
-let counter = 0;
 
 export class EmulatorWS {
   static setDeviceWs(deviceId: string, deviceWsMapItem: EmulatorWS) {
@@ -50,10 +48,6 @@ export class EmulatorWS {
     this.__serviceWsMap.set(service, ws);
     serviceWs.on('message', message => {
       parseEachJSON(message.toString(), async (err, parsedMessage: CommandType) => {
-        writeFileSync(
-          __dirname + '/../../../../log_received/' + counter++ + '.log',
-          JSON.stringify(parsedMessage, null, '\t')
-        );
         if (err) {
           return setTimeout(() => {
             this.logger.error(err);
