@@ -1,9 +1,9 @@
 import LogToConsole from '../LogToConsole';
 
-export default function ackErrorGenerator(message) {
-  return function ack(error) {
-    if (error) {
-      LogToConsole.instance.error('[ERROR]', message, error);
+export default function ackErrorGenerator(message: string) {
+  return (errors: string[] | string | null, result?: any): void => {
+    if (errors) {
+      LogToConsole.instance.error('[ERROR]', message, errors);
     }
   };
 }
