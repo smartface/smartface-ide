@@ -68,7 +68,7 @@ export class EmulatorWS {
         } else if (parsedMessage.command === 'getIndex') {
           this.__deviceInfo = (parsedMessage as GetIndexCommandType).data;
           const data = await new GetFilesIndexCommand().execute({ deviceInfo: this.__deviceInfo });
-          this.__indexFiles = data.files;
+          this.__indexFiles = data.files as FileInfoType[];
           sendChunkedMessage(
             serviceWs,
             JSON.stringify(createCommandMessage('getFiles', data)),

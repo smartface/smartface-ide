@@ -22,7 +22,6 @@ const walk = require('walk');
 const reAsset = new RegExp(
   'Assets\\' + path.sep + '\\w+\\.(?:imageset|appiconset|launchimage)\\' + path.sep
 );
-const projectJSONCombiner = require('project-json-combiner');
 const exec = require('child_process').exec;
 const globalModulesPath = require('global-modules');
 const fileQueue = require('filequeue');
@@ -37,6 +36,8 @@ const defaultIndexOptions = {
 import Device from './device';
 import getScaleFactor from './androidresourcescalefactor';
 import join from '../util/join';
+import { getProjectJSON } from '../projectJSONCombiner';
+import { WorkspaceIndexType } from '../../../core/WorkspaceIndexTypes';
 
 var _contentsJSONCache = {};
 
@@ -472,195 +473,187 @@ export default class Workspace {
    * @param {Device} device - Required. Device information to get correct image resources
    * @param {GetIndexCallback} - Required. When provided performs asynch operation
    */
-  getIndex(device, callback) {
+  async getIndex(device, callback) {
     if (!(device instanceof Device)) device = new Device(device);
     this.settings = {};
     this.imagesPath;
-    projectJSONCombiner.getProjectJSON(path.dirname(this.projectJSONPath), fs, (err, jsonObj) => {
-      if (err) return callback(err);
+    const jsonObj = await getProjectJSON(path.dirname(this.projectJSONPath));
+    let index = Object.assign({}, jsonObj, {
+      files: {},
+      projectID: '',
+    }) as WorkspaceIndexType;
+    this.settingsPath;
+    let taskCount = 3;
 
-      var index = Object.assign({}, jsonObj, {
-          files: {},
-        }),
-        taskCount = 3;
-
-      const setBinaryHashes = () => {
-        const playerFolder = join(globalModulesPath, 'smartface', 'bin');
-        var playerPath;
-        var playerName;
-        var fileHashes = {};
-        if (device.os === 'iOS') {
-          playerName = 'iOS_Player.zip';
+    const setBinaryHashes = () => {
+      const playerFolder = join(globalModulesPath, 'smartface', 'bin');
+      var playerPath;
+      var playerName;
+      var fileHashes = {};
+      if (device.os === 'iOS') {
+        playerName = 'iOS_Player.zip';
+      } else {
+        if (device.cpu === 'x86') {
+          playerName = 'SmartfacePlayer-x86.zip';
         } else {
-          if (device.cpu === 'x86') {
-            playerName = 'SmartfacePlayer-x86.zip';
-          } else {
-            playerName = 'SmartfacePlayer.zip';
-          }
+          playerName = 'SmartfacePlayer.zip';
         }
-        playerPath = join(playerFolder, playerName);
-        fileHashes[playerPath] = true;
-        if (index && index.build && index.build.input) {
-          var osKey = device.os.toLocaleLowerCase();
-          var pluginConfigSection = index.build.input[osKey] && index.build.input[osKey].plugins;
-          if (pluginConfigSection) {
-            for (var i in pluginConfigSection) {
-              var p = pluginConfigSection[i];
-              if (typeof p === 'object') {
-                p = p.active && p.path;
-              }
-              if (p) {
-                p = join(this.path, p);
-                fileHashes[p] = true;
-              }
+      }
+      playerPath = join(playerFolder, playerName);
+      fileHashes[playerPath] = true;
+      if (index && index.build && index.build.input) {
+        var osKey = device.os.toLocaleLowerCase();
+        var pluginConfigSection = index.build.input[osKey] && index.build.input[osKey].plugins;
+        if (pluginConfigSection) {
+          for (var i in pluginConfigSection) {
+            var p = pluginConfigSection[i];
+            if (typeof p === 'object') {
+              p = p.active && p.path;
+            }
+            if (p) {
+              p = join(this.path, p);
+              fileHashes[p] = true;
             }
           }
         }
-        hashMD5Files(fileHashes, (err, fileHashes) => {
-          if (err) throw err;
-          index.config.rau = index.config.rau || {};
-          index.config.rau.binary = {
-            players: {},
-            plugins: {},
-          };
-          var plugins = (index.config.rau.binary.plugins[device.os] = {});
-          var playerHash = fileHashes[playerPath];
-          var pluginList = Object.keys(fileHashes);
-          var idx = pluginList.indexOf(playerPath);
-          if (idx > -1) pluginList.splice(idx, 1);
-          if (playerHash) {
-            index.config.rau.binary.players[playerName] = playerHash;
-          }
-          for (var i in pluginList) {
-            var p = pluginList[i];
-            var pName = path.basename(p);
-            plugins[pName] = fileHashes[p];
-          }
-          done();
-        });
-      };
-
-      const updateScriptsPath = index => {
-        var iOSScripts = index.build.input.ios.scripts,
-          androidScripts = index.build.input.android.scripts;
-
-        if (!iOSScripts || !androidScripts || iOSScripts != androidScripts) {
-          return;
+      }
+      hashMD5Files(fileHashes, (err, fileHashes) => {
+        if (err) throw err;
+        index.config.rau = index.config.rau || {};
+        index.config.rau.binary = {
+          players: {},
+          plugins: {},
+        };
+        var plugins = (index.config.rau.binary.plugins[device.os] = {});
+        var playerHash = fileHashes[playerPath];
+        var pluginList = Object.keys(fileHashes);
+        var idx = pluginList.indexOf(playerPath);
+        if (idx > -1) pluginList.splice(idx, 1);
+        if (playerHash) {
+          index.config.rau.binary.players[playerName] = playerHash;
         }
-
-        this.scriptsPath = join(this.path, iOSScripts);
-        this.settingsPath = join(this.scriptsPath, 'settings.json');
-      };
-
-      const done = () => {
-        taskCount--;
-        if (taskCount !== 0) return;
-        index = sort(index);
-        callback(null, index);
-      };
-
-      index.projectID = this.getProjectID(true);
-      index.files = {};
-      _contentsJSONCache = {};
-      updateScriptsPath(index);
-      try {
-        delete require.cache[this.settingsPath];
-        this.settings = require(this.settingsPath);
-      } catch (e) {
-        console.error(e);
-        throw new Error('No settings file found');
-      }
-
-      if (this.hashBinaries) {
-        taskCount++;
-        setBinaryHashes();
-      }
-
-      walkFolder(join(this.assetsPath), files => {
-        processFolder(index, files, 'asset', done, null);
+        for (var i in pluginList) {
+          var p = pluginList[i];
+          var pName = path.basename(p);
+          plugins[pName] = fileHashes[p];
+        }
+        done();
       });
+    };
+    const updateScriptsPath = index => {
+      var iOSScripts = index.build.input.ios.scripts,
+        androidScripts = index.build.input.android.scripts;
 
-      let jsRegExp = /\.js$|\.json$|\.jsx$/;
-      if (
-        this.settings &&
-        this.settings.config &&
-        this.settings.config.paths &&
-        this.settings.config.paths.output
-      ) {
-        const output = this.settings.config.paths.output;
+      if (!iOSScripts || !androidScripts || iOSScripts != androidScripts) {
+        return;
+      }
 
-        if (output.acceptedExtensions && output.acceptedExtensions.length) {
-          jsRegExp = new RegExp(
-            output.acceptedExtensions.map(ext => escapeRegExp(ext)).join('$|') + '$'
-          );
-        }
-        if (output.root) {
-          taskCount += 1;
-          walkFolder(join(this.path, output.root), files => {
-            processFolder(index, elimaneteUnnecessaryScriptsFiles(files, jsRegExp), 'script', done);
-          });
-        }
-        if (output.include && output.include.length) {
-          taskCount += output.include.length;
-          walkFolder(join(this.scriptsPath), files => {
-            output.include.forEach(includePath => {
-              processFolder(
-                index,
-                elimaneteUnnecessaryScriptsFiles(files, jsRegExp),
-                'script',
-                done
-              );
-            });
-          });
-        }
-      } else {
+      this.scriptsPath = join(this.path, iOSScripts);
+      this.settingsPath = join(this.scriptsPath, 'settings.json');
+    };
+    const done = () => {
+      taskCount--;
+      if (taskCount !== 0) return;
+      index = sort(index);
+      callback(null, index);
+    };
+
+    index.projectID = this.getProjectID(true);
+    index.files = {};
+    _contentsJSONCache = {};
+    updateScriptsPath(index);
+    try {
+      delete require.cache[this.settingsPath];
+      this.settings = require(this.settingsPath);
+    } catch (e) {
+      console.error(e);
+      throw new Error('No settings file found');
+    }
+
+    if (this.hashBinaries) {
+      taskCount++;
+      setBinaryHashes();
+    }
+
+    walkFolder(join(this.assetsPath), files => {
+      processFolder(index, files, 'asset', done, null);
+    });
+
+    let jsRegExp = /\.js$|\.json$|\.jsx$/;
+    if (
+      this.settings &&
+      this.settings.config &&
+      this.settings.config.paths &&
+      this.settings.config.paths.output
+    ) {
+      const output = this.settings.config.paths.output;
+
+      if (output.acceptedExtensions && output.acceptedExtensions.length) {
+        jsRegExp = new RegExp(
+          output.acceptedExtensions.map(ext => escapeRegExp(ext)).join('$|') + '$'
+        );
+      }
+      if (output.root) {
         taskCount += 1;
-        walkFolder(join(this.scriptsPath), files => {
+        walkFolder(join(this.path, output.root), files => {
           processFolder(index, elimaneteUnnecessaryScriptsFiles(files, jsRegExp), 'script', done);
         });
       }
-
-      walkFolder(join(this.fontPath), files => {
-        processFolder(index, files, 'font', done);
-      });
-
-      var otherMapping = [
-        {
-          path: join(this.configPath, 'defaults.xml'),
-          scheme: 'config',
-          relativeTo: this.configPath,
-        },
-      ];
-
-      const handleOther = () => {
-        var handled = [];
-        var mapping;
-        for (var i = 0; i < otherMapping.length; i++) {
-          mapping = otherMapping[i];
-          if (mapping.os && mapping.os !== device.os) {
-            handled.push(i);
-            continue;
-          }
-          fs.stat(mapping.path, (err, stats) => {
-            if (err) return;
-            taskCount++;
-            var fileObject = {};
-            fileObject[mapping.path] = path.relative(mapping.relativeTo, mapping.path);
-            processFolder(index, fileObject, mapping.scheme, done);
+      if (output.include && output.include.length) {
+        taskCount += output.include.length;
+        walkFolder(join(this.scriptsPath), files => {
+          output.include.forEach(includePath => {
+            processFolder(index, elimaneteUnnecessaryScriptsFiles(files, jsRegExp), 'script', done);
           });
-        }
-      };
-
-      handleOther();
-
-      var handleImages;
-      if (device.os === 'iOS') {
-        handleImages = handleImages_iOS;
-      } else if (device.os === 'Android') {
-        handleImages = handleImages_Android;
+        });
       }
-      handleImages(device, this, index, done);
+    } else {
+      taskCount += 1;
+      walkFolder(join(this.scriptsPath), files => {
+        processFolder(index, elimaneteUnnecessaryScriptsFiles(files, jsRegExp), 'script', done);
+      });
+    }
+
+    walkFolder(join(this.fontPath), files => {
+      processFolder(index, files, 'font', done);
     });
+
+    var otherMapping = [
+      {
+        path: join(this.configPath, 'defaults.xml'),
+        scheme: 'config',
+        relativeTo: this.configPath,
+      },
+    ];
+
+    const handleOther = () => {
+      var handled = [];
+      var mapping;
+      for (var i = 0; i < otherMapping.length; i++) {
+        mapping = otherMapping[i];
+        if (mapping.os && mapping.os !== device.os) {
+          handled.push(i);
+          continue;
+        }
+        fs.stat(mapping.path, (err, stats) => {
+          if (err) return;
+          taskCount++;
+          var fileObject = {};
+          fileObject[mapping.path] = path.relative(mapping.relativeTo, mapping.path);
+          processFolder(index, fileObject, mapping.scheme, done);
+        });
+      }
+    };
+
+    handleOther();
+
+    var handleImages;
+    if (device.os === 'iOS') {
+      handleImages = handleImages_iOS;
+    } else if (device.os === 'Android') {
+      handleImages = handleImages_Android;
+    }
+    handleImages(device, this, index, done);
   }
 
   /**
@@ -669,20 +662,16 @@ export default class Workspace {
    * @param {String} - Optional. Filters by image name
    * @param {GetIndexCallback} - Required. When provided performs asynch operation
    */
-  getImage(device, imageName, callback, full?: any) {
+  async getImage(device: Device, imageName?: string | string[], full?: any): Promise<any> {
     if (!(device instanceof Device)) device = new Device(device);
-    if (typeof callback === 'undefined' && typeof imageName === 'function') {
-      callback = imageName;
-      imageName = undefined;
-    }
     full = !!full;
-
-    projectJSONCombiner.getProjectJSON(path.dirname(this.projectJSONPath), fs, (err, jsonObj) => {
-      if (err) return callback(err);
-      var index = Object.assign({}, jsonObj, {
+    return new Promise(async (resolve, reject) => {
+      const jsonObj = await getProjectJSON(path.dirname(this.projectJSONPath));
+      const index = Object.assign({}, jsonObj, {
         files: {},
+        projectID: '',
       });
-      var handleImages;
+      let handleImages;
       if (device.os === 'iOS') {
         handleImages = handleImages_iOS;
         if (imageName) {
@@ -695,18 +684,13 @@ export default class Workspace {
       } else if (device.os === 'Android') {
         handleImages = handleImages_Android;
       }
-
-      handleImages(device, this, index, done, {
+      handleImages(device, this, index, index => resolve(index), {
         calculateCRC: full,
         addDate: full,
         fileKeyType: 'path',
         addScaleFactor: device,
         fileNameMatch: imageName,
       });
-
-      function done(index) {
-        callback(null, index.files);
-      }
     });
   }
 

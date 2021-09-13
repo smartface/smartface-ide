@@ -12,6 +12,7 @@ import { mkdirpAsync } from '../shared/util/mkdirp';
 import Workspace from '../shared/workspace/workspace';
 import getRandomName from '../shared/util/getRandomName';
 import LogToConsole from '../shared/LogToConsole';
+import Device from '../shared/workspace/device';
 
 const IMAGE_FORMAT = {
   png: Jimp.MIME_PNG || 'image/png',
@@ -24,16 +25,16 @@ export default function createImageApi(app: Express, options: any = {}) {
   logger.log('image serving ready...');
   app.get(
     ConfigurationService.baseImageServePath + '/:imageName',
-    (req: Request, res: Response, next: NextFunction) => {
-      var device = {
-          resourceFolderOrder: _ => _,
-          os: req.query.os,
-          screen: {
-            dp: req.query.density,
-          },
-          brandModel: req.query.brandModel,
+    async (req: Request, res: Response, next: NextFunction) => {
+      let device: Device = new Device({
+        resourceFolderOrder: _ => _,
+        os: req.query.os,
+        screen: {
+          dp: req.query.density,
         },
-        densityRatio = req.query.densityRatio || 1;
+        brandModel: req.query.brandModel,
+      });
+      let densityRatio = req.query.densityRatio || 1;
       try {
         if (req.query.resourceFolderOrder) {
           var resourceFolderOrder = (req.query.resourceFolderOrder as string).split(',');
@@ -51,22 +52,20 @@ export default function createImageApi(app: Express, options: any = {}) {
       var zoomLevel = Number(req.query.zoomLevel) || 1;
       var ws = new Workspace({
         path: wsPath,
-        projectID: process.env.C9_HOSTNAME,
       });
       var imageName = req.params.imageName;
       var imageFormat = getImageFormat(imageName);
-
-      if (imageFormat === 'gif')
-        serveGifImage(
-          req.query,
-          path.join(wsPath, 'assets', imageName),
-          densityRatio,
-          zoomLevel,
-          res
-        );
-      else if (imageName !== '*') {
-        ws.getImage(device, req.params.imageName,  (err, index) => {
-          if (err) return handleError(err, res);
+      try {
+        if (imageFormat === 'gif')
+          serveGifImage(
+            req.query,
+            path.join(wsPath, 'assets', imageName),
+            densityRatio,
+            zoomLevel,
+            res
+          );
+        else if (imageName !== '*') {
+          const index = await ws.getImage(device, req.params.imageName);
           var found = !!(index && Object.keys(index) && Object.keys(index)[0]);
           if (found) {
             var filePath = Object.keys(index)[0];
@@ -75,25 +74,20 @@ export default function createImageApi(app: Express, options: any = {}) {
           } else {
             res.sendStatus(404);
           }
-        });
-      } else {
-        ws.getImage(
-          device,
-          req.params.imageName,
-          function indexResultAll(err, index) {
-            if (err) return handleError(err, res);
-            var result = {};
-            for (var p in index) {
-              var item = index[p];
-              item.path = p;
-              var parsedPath = path.parse(p);
-              var key = parsedPath.name.split('@')[0] + parsedPath.ext;
-              result[key] = item;
-            }
-            res.json(result);
-          },
-          false
-        );
+        } else {
+          const index = await ws.getImage(device, req.params.imageName, false);
+          var result = {};
+          for (var p in index) {
+            var item = index[p];
+            item.path = p;
+            var parsedPath = path.parse(p);
+            var key = parsedPath.name.split('@')[0] + parsedPath.ext;
+            result[key] = item;
+          }
+          res.json(result);
+        }
+      } catch (err) {
+        if (err) return handleError(err, res);
       }
     }
   );
