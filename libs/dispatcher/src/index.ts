@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { ConfigurationService } from './modules/shared/ConfigurationService';
 import createWSS from './modules/shared/createWSS';
 import minimist = require('minimist');

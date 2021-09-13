@@ -1,16 +1,13 @@
 {
   "name": "@smartface/dispatcher",
-  "version": "0.3.0",
+  "version": "0.4.0-beta.1",
   "description": "Handles Emulator Dispatcher Part of SmartfaceCloud",
-  "main": "src/index.js",
+  "main": "./lib/index.js",
   "publishConfig": {
     "access": "public"
   },
   "bin": {
-    "smf-cloud-emulator-dispatcher": "bin/index.js",
-    "smartfacecloud-emulator-dispatcher": "bin/index.js",
-    "dispatcher": "bin/index.js",
-    "smartface-cloud-emulator-dispatcher": "bin/index.js"
+    "dispatcher": "./lib/index.js"
   },
   "scripts": {
     "clean": "rimraf ./lib",
