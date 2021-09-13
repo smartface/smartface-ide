@@ -50,7 +50,7 @@ export default function createImageApi(app: Express, options: any = {}) {
       }
 
       var zoomLevel = Number(req.query.zoomLevel) || 1;
-      var ws = new Workspace({
+      var workspace = new Workspace({
         path: wsPath,
       });
       var imageName = req.params.imageName;
@@ -65,7 +65,7 @@ export default function createImageApi(app: Express, options: any = {}) {
             res
           );
         else if (imageName !== '*') {
-          const index = await ws.getImage(device, req.params.imageName);
+          const index = await workspace.getImage(device, req.params.imageName);
           var found = !!(index && Object.keys(index) && Object.keys(index)[0]);
           if (found) {
             var filePath = Object.keys(index)[0];
@@ -75,7 +75,7 @@ export default function createImageApi(app: Express, options: any = {}) {
             res.sendStatus(404);
           }
         } else {
-          const index = await ws.getImage(device, req.params.imageName, false);
+          const index = await workspace.getImage(device, req.params.imageName, false);
           var result = {};
           for (var p in index) {
             var item = index[p];
