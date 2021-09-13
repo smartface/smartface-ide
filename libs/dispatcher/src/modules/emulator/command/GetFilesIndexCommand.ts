@@ -11,9 +11,6 @@ export default class GetFilesIndexCommand implements Command<any> {
             path: ConfigurationService.instance.getWorkspacePath(),
             projectID: ''
         });
-        return new Promise((resolve, reject) => {
-            console.info('Get workspace.getIndex ...');
-             return workspace.getIndex(new Device(opts.deviceInfo));
-        });
+        return workspace.getIndex(new Device(opts.deviceInfo));
     }
 }
