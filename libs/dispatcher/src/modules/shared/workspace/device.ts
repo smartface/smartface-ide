@@ -15,6 +15,7 @@ export default class Device {
     brandModel: string;
     brandName: string;
     imageExtensionOrder: number[];
+    cpu: 'x86' | 'ARM';
 
     constructor(options){ 
     Object.assign(this, options);
