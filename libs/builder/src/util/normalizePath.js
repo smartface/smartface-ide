@@ -1,4 +1,3 @@
-module.exports = function normalizePath(path){
-    console.log("path : ", path);
-  return path.replace(/\\/g, '/');
+module.exports = function normalizePath(path) {
+    return path.replace(/\\/g, '/');
 }

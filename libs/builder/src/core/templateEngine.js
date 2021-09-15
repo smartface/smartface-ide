@@ -25,7 +25,6 @@ const src = {
   userPage: (projectType) => `../template/${projectType}/userPage.hbs`,
   onRowCreate: (projectType) => `../template/${projectType}/_onRowCreate.hbs`,
   gridViewBody: (projectType) => `../template/${projectType}/_gridViewBody.hbs`,
-  bodyHelper: (projectType) => `../template/${projectType}/_bodyHelper.hbs`,
   idXml: () => `../template/idXml.hbs`
 };
 
@@ -71,7 +70,6 @@ module.exports.init = () => {
         userPage: readModuleFile(src.userPage(projectType)),
         onRowCreate: readModuleFile(src.onRowCreate(projectType)),
         gridViewBody: readModuleFile(src.gridViewBody(projectType)),
-        bodyHelper: readModuleFile(src.bodyHelper(projectType))
     };
     __compiler = {
         repeatboxExampleData: Handlebars.compile(__template.repeatboxExampleData, COMPILER_OPTIONS),

@@ -56,7 +56,15 @@ export default class {{capitalizeFirstLetter libraryType}} extends {{type}} impl
             super.addChild(child);
         }
     }
-    {{/isRepeatedView}}{{/if}}
+    {{/isRepeatedView}}{{/if}}{{#if children}}
+    applyTestIDs(testId: string =  {{capitalizeFirstLetter libraryType}}.$$styleContext.userProps.testId){
+        Object.keys(this.children).forEach( child => {
+            this.children[child].testId = testId + '_' + child;
+            if(this.children[child].children){
+                this.children[child].applyTestIDs(this.children[child].testId);
+            }
+        });
+    }{{/if}}
 }
 
 {{> body}}

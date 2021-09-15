@@ -43,7 +43,6 @@ function TranspileLibrary() {
     setTranspilersAsPassive();
     util.mkdirpSync(libraryUserFolder);
     prepareLibComps(parsedObjectData).forEach(comp => {
-      console.log('coreLibPath : ', coreLibPath);
 
       comp.coreLibPath = normalizePath(coreLibPath);
       var res = generateOneComponent(comp);
