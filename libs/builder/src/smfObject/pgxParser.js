@@ -76,11 +76,10 @@ function parsePgx(components) {
         }
 
         if (isLibraryPage) {
-            item.ifNeededApplyingTestId = item.isLibraryComponent || (item.children && item.children.length);
+            item.ifNeededApplyingTestId = item.isLibraryComponent || (item.children && (item.defaultItemType ? false : item.children.length));
         } else if (item.libID) {
             const nestedChildren = globalLibComps.getLibraryNestedChildrenTestIDs(item.libID, item.testId);
             nestedChildren.forEach(name => updateIdXmlContent(name));
-            console.log('NESTEDCHILDREN: ', nestedChildren);
         }
 
         treeArr.length > 1 && treeArr.shift(); // remove pageName
@@ -334,7 +333,7 @@ function prepareComponentsAssignedToPage(smfObjects, componentById) {
         if (subSmfObject.usePageVariable)
             childrenRefs.push({ klass: createChildClassFromFamilyTree(componentById, comp), type: subSmfObject.libraryType || subSmfObject.type, ref: prepareOneComponentRefForPage(componentById, comp), name: subSmfObject.name });
         if (subSmfObject.smfObjects) {
-            childrenRefs = childrenRefs.concat(prepareComponentsAssignedToPage(subSmfObject.smfObjects, componentById))
+            childrenRefs = childrenRefs.concat(prepareComponentsAssignedToPage(subSmfObject.smfObjects, componentById));
         }
     });
     return childrenRefs;
@@ -348,7 +347,7 @@ function getComponentsAssignedToRoot(smfObjects, componentById) {
         if (comp.props.usePageVariable)
             childrenRefs.push({ klass, type: subSmfObject.libraryType || subSmfObject.type, ref: prepareOneComponentRefForRoot(componentById, comp), name: comp.props.name });
         if (subSmfObject.smfObjects) {
-            childrenRefs = childrenRefs.concat(getComponentsAssignedToRoot(subSmfObject.smfObjects, componentById))
+            childrenRefs = childrenRefs.concat(getComponentsAssignedToRoot(subSmfObject.smfObjects, componentById));
         }
     });
     return childrenRefs;
@@ -437,7 +436,7 @@ function setLibComponentsTypes(smfObjects) {
         if (smfObject.libID && !smfObject.libraryType) {
             smfObject.libraryType = globalLibComps.getLibraryType(smfObject.libID);
             smfObject.libraryType && (smfObject.isLibraryComponent = true);
-            smfObject.libComp = globalLibComps.getLibComps()
+            smfObject.libComp = globalLibComps.getLibComps();
             //console.log(smfObject.name, "  libraryType: ", smfObject.libraryType, " ---2nd--");
         }
         smfObject.smfObjects && setLibComponentsTypes(smfObject.smfObjects);
