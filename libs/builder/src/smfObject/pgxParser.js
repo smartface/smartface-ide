@@ -68,17 +68,16 @@ function parsePgx(components) {
             item.testId = "_" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("_");
         } else if (component.type !== "Page" && component.type !== "StatusBar" && component.type !== "HeaderBar") {
             item.testId = "_" + treeArr.map((name, index) => index === 0 ? util.capitalizeFirstLetter(name) : name).join("_");
-            updateIdXmlContent(item.testId);
             if (component.source && component.source.type && component.source.type.toLowerCase() === "materialtextbox") {
+                updateIdXmlContent(item.testId);
                 updateIdXmlContent(item.testId + '_textBox');
                 delete item.props.testId;
                 item.mtbTestId = item.testId;
             } else if (isLibraryPage) {
                 item.props.testId = item.testId;
             }
-        } if (!isLibraryPage) {
-            delete item.props.testId;
         }
+        delete item.props.testId;
         treeArr.length > 1 && treeArr.shift(); // remove pageName
         item.varName = "$" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("$$");
         item.parentID = item.parent;
