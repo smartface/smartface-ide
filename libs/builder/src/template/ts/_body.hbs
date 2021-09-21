@@ -37,7 +37,7 @@
         } else {
             this.addChild(child);
         }
-    }{{/isRepeatedView}}{{/if}}{{#isEmpty children}} {{else}}
+    }{{/isRepeatedView}}{{/if}}{{#isEmpty ifNeededApplyingTestId}} {{else}}
     applyTestIDs(testId: string){
         Object.keys(this.children).forEach( child => {
             this.children[child].testId = testId + '_' + child;

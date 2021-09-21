@@ -56,7 +56,7 @@ export default class {{capitalizeFirstLetter libraryType}} extends {{type}} impl
             super.addChild(child);
         }
     }
-    {{/isRepeatedView}}{{/if}}{{#if children}}
+    {{/isRepeatedView}}{{/if}}{{#if ifNeededApplyingTestId}}
     applyTestIDs(testId: string){
         Object.keys(this.children).forEach( child => {
             this.children[child].testId = testId + '_' + child;

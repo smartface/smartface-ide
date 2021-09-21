@@ -118,10 +118,8 @@ function parsePgx(components) {
         item.defaultClassNames = `${STATIC_COMPONENTS[item.type] ? "" : ".default_common"} .default_${util.lowercaseFirstLetter(item.type)}`;
         //(!isLibraryPage && (item.type === "ListViewItem")) && (item.className += ` ${item.bundleID}`);
         //isLibraryPage && (item.className += " #" + getFamilyTree(componentById, component).reverse().join("_"));
-        let nestedChildrenTestIDs = [];
-        if (isLibraryPage) {
-            item.ifNeededApplyingTestId = item.isLibraryComponent || (item.children && (item.defaultItemType ? false : item.children.length));
-        }
+        item.ifNeededApplyingTestId = item.children && (item.defaultItemType ? false : item.children.length);
+
     });
     footer.mapviewRefs = prepareMapviewRefs(componentById, components);
     footer.pageName = footer.page ? footer.page.varName : '';
