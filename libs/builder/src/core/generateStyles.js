@@ -170,7 +170,7 @@ module.exports = (function () {
                                 return reject(err);
                             themeBundles[themeName] = { bundle, variables: variablesJson };
                             resolve(themeBundles[themeName]);
-                            console.log(`├─ 📦  Generate Bundle --> ${(parentTheme || "-".repeat(15))} -> ${path.basename(file)}`);
+                            console.log(`├─ 📦  Generated Bundle --> ${(parentTheme || "-".repeat(15))} -> ${path.basename(file)}`);
                         });
                     }, reject);
             }, reject);

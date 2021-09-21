@@ -21,14 +21,13 @@ async function writeIdXml() {
             attrname: "name"
         }], function (xmlRes) {
             fs.writeFileSync(getPath('ANDROID_ID_XML'), xmlRes.replace(/\/\>/gi, '/>\n'), 'utf8');
-            console.log('├─ ℹ️  Updated ids.xml...');
-            resolve(xmlRes)
+            console.log('├─ ℹ️   Updated ids.xml...');
+            resolve(xmlRes);
         });
     });
-
 }
 
 module.exports = {
     writeIdXml,
     updateIdXmlContent
-}
+};

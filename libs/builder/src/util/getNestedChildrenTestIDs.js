@@ -1,10 +1,11 @@
+const util = require('../util.js');
 const globalLibComps = require("../smfObject/libComps");
 
 module.exports = function getNestedChildrenTestIDs(smfObject, testID) {
     let res = [];
     if (smfObject.smfObjects) {
         smfObject.smfObjects.forEach(childSmfObject => {
-            const childTestID = testID + '_' + childSmfObject.name;
+            const childTestID = testID + '_' + util.capitalizeFirstLetter(childSmfObject.name);
             res.push(childTestID);
             res = res.concat(getNestedChildrenTestIDs(childSmfObject, childTestID));
         });

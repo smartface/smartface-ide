@@ -106,7 +106,7 @@ function TranspileLibrary() {
     var filePath =  prepareOutputFilePath(projectType, libraryUiFolder, opt.name);
     var islibFolderExists = util.mkdirpSync(path.dirname(filePath));
     fs.writeFileSync(filePath, opt.content, "utf8");
-    console.log("├─ 📗  generated " + path.relative(libraryUiFolder, filePath));
+    console.log("├─ 📗  Generated " + path.relative(libraryUiFolder, filePath));
     return islibFolderExists;
   }
 

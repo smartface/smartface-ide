@@ -42,6 +42,7 @@ export default class {{capitalizeFirstLetter libraryType}} extends {{type}} impl
     {{#isRepeatedView type}}
 		{{#if isLibraryComponent}}{{else}}{{#if isModuleComp}}{{else}}{{> onRowCreate children=./smfObjects defaultItemType=./defaultItemType}}{{/if}}{{/if}}{{else}}
 	{{/isRepeatedView}}
+    {{#if isLibraryPage}}this.testId = {{json testId}}; {{/if}}
     }
     {{#if smfObjects}}{{#isRepeatedView type}} {{else}} addChildByName(child: View, name: string) {
         this.children[name] = child;
@@ -59,7 +60,7 @@ export default class {{capitalizeFirstLetter libraryType}} extends {{type}} impl
     {{/isRepeatedView}}{{/if}}{{#if ifNeededApplyingTestId}}
     applyTestIDs(testId: string){
         Object.keys(this.children).forEach( child => {
-            this.children[child].testId = testId + '_' + child;
+            this.children[child].testId = testId + '_' + child.charAt(0).toUpperCase() + child.slice(1);
             if(this.children[child].applyTestIDs){
                 this.children[child].applyTestIDs(this.children[child].testId);
             }
