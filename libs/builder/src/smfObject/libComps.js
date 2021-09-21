@@ -67,7 +67,7 @@ module.exports = (function () {
     function getLibraryNestedChildrenTestIDs(id, varName) {
         let res = [];
         if (libraryPageComps && libraryPageComps[id] && libraryPageComps[id].children) {
-            const childRes = libraryPageComps[id].children.map(item => `${varName}_${util.capitalizeFirstLetter(item.name)}`);
+            const childRes = libraryPageComps[id].children.map(item => `${varName}_${item.name}`);
             res = res.concat(childRes);
             if (libraryPageComps[id].smfObjects) {
                 libraryPageComps[id].smfObjects.forEach((smfObject, index) => {

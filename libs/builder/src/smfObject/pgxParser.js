@@ -67,7 +67,7 @@ function parsePgx(components) {
         if (component.type === "Page") {
             item.testId = "_" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("_");
         } else if (component.type !== "Page" && component.type !== "StatusBar" && component.type !== "HeaderBar") {
-            item.testId = "_" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("_");
+            item.testId = "_" + treeArr.map((name, index) => index === 0 ? util.capitalizeFirstLetter(name) : name).join("_");
             updateIdXmlContent(item.testId);
             if (component.source && component.source.type && component.source.type.toLowerCase() === "materialtextbox") {
                 updateIdXmlContent(item.testId + '_textBox');
