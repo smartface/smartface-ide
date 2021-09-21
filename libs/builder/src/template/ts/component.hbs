@@ -57,10 +57,10 @@ export default class {{capitalizeFirstLetter libraryType}} extends {{type}} impl
         }
     }
     {{/isRepeatedView}}{{/if}}{{#if children}}
-    applyTestIDs(testId: string =  {{capitalizeFirstLetter libraryType}}.$$styleContext.userProps.testId){
+    applyTestIDs(testId: string){
         Object.keys(this.children).forEach( child => {
             this.children[child].testId = testId + '_' + child;
-            if(this.children[child].children){
+            if(this.children[child].applyTestIDs){
                 this.children[child].applyTestIDs(this.children[child].testId);
             }
         });

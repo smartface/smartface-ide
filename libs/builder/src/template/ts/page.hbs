@@ -38,6 +38,7 @@ class {{capitalizeFirstLetter pageName}} extends Page {
         {{#each children}}this.addChildByName(new {{constructorName}}(), {{json name}});{{/each}}
         {{#each componentsAssignedToPage}}this.{{name}} = {{ref}};{{/each}}
         pageContextPatch(this, {{json name}});
+        this.applyTestIDs({{json footer.page.testId}});
     }
     addChild(child: View, name?: string, classNames?: string, userProps?: { [key: string]: any; }, defaultClassNames?: string): void {
         if (this['layout']) {
@@ -49,6 +50,14 @@ class {{capitalizeFirstLetter pageName}} extends Page {
     addChildByName(child: View, name: string) {
         this.children[name] = child;
         this.addChild(child);
+    }
+    applyTestIDs(testId: string){
+        Object.keys(this.children).forEach( child => {
+            this.children[child].testId = testId + '_' + child;
+            if(this.children[child].applyTestIDs){
+                this.children[child].applyTestIDs(this.children[child].testId);
+            }
+        });
     }
 }
 export default {{capitalizeFirstLetter pageName}};

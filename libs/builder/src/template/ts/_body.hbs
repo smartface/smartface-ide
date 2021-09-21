@@ -28,16 +28,7 @@
     {{/if}}
     {{#isRepeatedView type}}
 		{{#if isLibraryComponent}}{{else}}{{#if isModuleComp}}{{else}}{{> onRowCreate children=./smfObjects defaultItemType=./defaultItemType}}{{/if}}{{/if}}{{else}}
-	{{/isRepeatedView}}{{#if ifNeededApplyingTestId}}
-        {{#if isLibraryComponent}}//@ts-ignore{{/if}}
-        if (this.applyTestIDs){
-            {{#if isLibraryComponent}}//@ts-ignore{{/if}}
-            this.applyTestIDs({{varName}}.$$styleContext.userProps.testId);
-        } {{else}} {{#if isLibraryComponent}} //@ts-ignore
-        if (this.applyTestIDs){
-            //@ts-ignore
-            this.applyTestIDs({{varName}}.$$styleContext.userProps.testId);
-        } {{/if}} {{/if}}
+	{{/isRepeatedView}}
     }
     {{#if smfObjects}} {{#isRepeatedView type}} {{else}} addChildByName(child: View, name: string) {
         this.children[name] = child;
@@ -46,15 +37,15 @@
         } else {
             this.addChild(child);
         }
-    }{{/isRepeatedView}}{{/if}}{{#if ifNeededApplyingTestId}}
-    applyTestIDs(testId: string =  {{varName}}.$$styleContext.userProps.testId){
+    }{{/isRepeatedView}}{{/if}}{{#isEmpty children}} {{else}}
+    applyTestIDs(testId: string){
         Object.keys(this.children).forEach( child => {
             this.children[child].testId = testId + '_' + child;
-            if(this.children[child].children){
+            if(this.children[child].applyTestIDs){
                 this.children[child].applyTestIDs(this.children[child].testId);
             }
         });
-    }{{/if}}
+    }{{/isEmpty}}
     
 	}  
 	{{#if smfObjects}} {{> body footer=../footer pageName=../pageName}} {{/if}}

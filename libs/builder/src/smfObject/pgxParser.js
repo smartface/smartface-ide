@@ -3,6 +3,7 @@ const dotProp = require("dot-prop");
 const createAttributedStrings = require("@smartface/html-to-text");
 const isPlainAttributedText = require("@smartface/html-to-text/util").isPlainAttributedText;
 const { updateIdXmlContent } = require('../prepare-id-xml');
+const getNestedChildrenTestIDs = require('../util/getNestedChildrenTestIDs');
 const Mapper = require("./mapToSmartfaceObject");
 const mapper = new Mapper();
 
@@ -63,25 +64,21 @@ function parsePgx(components) {
         component.type === "GridView" && (item.layoutManager.onItemLength = `() => ${getAppropriateItemLength(component, componentById)}`);
         item.bundleID = "#" + treeArr.reverse().join("_");
 
-        if (component.type !== "Page" && component.type !== "StatusBar" && component.type !== "HeaderBar") {
+        if (component.type === "Page") {
+            item.testId = "_" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("_");
+        } else if (component.type !== "Page" && component.type !== "StatusBar" && component.type !== "HeaderBar") {
             item.testId = "_" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("_");
             updateIdXmlContent(item.testId);
             if (component.source && component.source.type && component.source.type.toLowerCase() === "materialtextbox") {
                 updateIdXmlContent(item.testId + '_textBox');
                 delete item.props.testId;
                 item.mtbTestId = item.testId;
-            } else {
+            } else if (isLibraryPage) {
                 item.props.testId = item.testId;
             }
+        } if (!isLibraryPage) {
+            delete item.props.testId;
         }
-
-        if (isLibraryPage) {
-            item.ifNeededApplyingTestId = item.isLibraryComponent || (item.children && (item.defaultItemType ? false : item.children.length));
-        } else if (item.libID) {
-            const nestedChildren = globalLibComps.getLibraryNestedChildrenTestIDs(item.libID, item.testId);
-            nestedChildren.forEach(name => updateIdXmlContent(name));
-        }
-
         treeArr.length > 1 && treeArr.shift(); // remove pageName
         item.varName = "$" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("$$");
         item.parentID = item.parent;
@@ -121,18 +118,30 @@ function parsePgx(components) {
         item.defaultClassNames = `${STATIC_COMPONENTS[item.type] ? "" : ".default_common"} .default_${util.lowercaseFirstLetter(item.type)}`;
         //(!isLibraryPage && (item.type === "ListViewItem")) && (item.className += ` ${item.bundleID}`);
         //isLibraryPage && (item.className += " #" + getFamilyTree(componentById, component).reverse().join("_"));
+        let nestedChildrenTestIDs = [];
+        if (isLibraryPage) {
+            item.ifNeededApplyingTestId = item.isLibraryComponent || (item.children && (item.defaultItemType ? false : item.children.length));
+        }
     });
     footer.mapviewRefs = prepareMapviewRefs(componentById, components);
     footer.pageName = footer.page ? footer.page.varName : '';
     if (footer.page)
         footer.page.safeAreaEnabled = !!components[0].userProps.safeAreaEnabled;
-    var _smfObjects = footer.pageName === LIBRARY_PAGE_NAME ? smfObjects :
+    const _smfObjects = footer.pageName === LIBRARY_PAGE_NAME ? smfObjects :
         smfObjects.filter(comp => !checkParentIsLibraryComp(comp, compsObject));
     setLibComponentsTypes(smfObjects);
+
     if (isLibraryPage) {
         prepareAndSetComponentsAssignedToRoot(smfObjects, componentById);
         globalLibComps.prepareLibraryPageComps(smfObjects);
+        _smfObjects.forEach(obj => {
+            obj.testIDsList = getNestedChildrenTestIDs(obj, "");
+        });
+    } else {
+        footer.page.testIDsList = getNestedChildrenTestIDs({ ...footer.page, smfObjects: _smfObjects }, footer.page.testId);
+        footer.page.testIDsList.forEach(id => updateIdXmlContent(id));
     }
+
     //_smfObjects.reverse();
     return Object.assign({}, {
         initialized: components[0].initialized,
@@ -268,6 +277,20 @@ function parseComponent(obj, parentComponent) {
         }
     }
     return parsedSmfObject;
+}
+
+function prepareTestIDsList(page) {
+    if (component.type !== "Page" && component.type !== "StatusBar" && component.type !== "HeaderBar") {
+        item.testId = "_" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("_");
+        updateIdXmlContent(item.testId);
+        if (component.source && component.source.type && component.source.type.toLowerCase() === "materialtextbox") {
+            updateIdXmlContent(item.testId + '_textBox');
+            delete item.props.testId;
+            item.mtbTestId = item.testId;
+        } else if (item.libID) {
+            item.props.testId = item.testId;
+        }
+    }
 }
 
 function checkPropIsValid(key, smfObject) {

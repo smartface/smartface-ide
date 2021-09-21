@@ -43,9 +43,9 @@ module.exports = (function () {
                 if (comp.smfObjects) {
                     setLibraryPageCompsHelper(comp.smfObjects);
                 }
-            })
-        }
-        setLibraryPageCompsHelper(libraryPageSmfObjects)
+            });
+        };
+        setLibraryPageCompsHelper(libraryPageSmfObjects);
     }
 
     function getLibComps() {
@@ -65,15 +65,17 @@ module.exports = (function () {
     }
 
     function getLibraryNestedChildrenTestIDs(id, varName) {
-        let res = []
+        let res = [];
         if (libraryPageComps && libraryPageComps[id] && libraryPageComps[id].children) {
-            const childRes = libraryPageComps[id].children.map(item => `${varName}_${item.name}`);
+            const childRes = libraryPageComps[id].children.map(item => `${varName}_${util.capitalizeFirstLetter(item.name)}`);
             res = res.concat(childRes);
             if (libraryPageComps[id].smfObjects) {
                 libraryPageComps[id].smfObjects.forEach((smfObject, index) => {
                     res = res.concat(getLibraryNestedChildrenTestIDs(smfObject.id, childRes[index]));
                 });
             }
+        } else if (libraryPageComps[id].libID && (libraryPageComps[id].libID !== libraryPageComps[id].id)) {
+            res = res.concat(getLibraryNestedChildrenTestIDs(libraryPageComps[id].libID, varName));
         }
         return res;
     }
