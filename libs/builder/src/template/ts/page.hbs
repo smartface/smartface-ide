@@ -32,7 +32,7 @@ class {{capitalizeFirstLetter pageName}} extends Page {
 	}};
     {{#each componentsAssignedToPage}}{{name}}: StyleContextComponentType<{{klass}}>;{{/each}}
     constructor(props?: any) {
-        super(Object.assign({ {{> onLoad footer}} {{#if footer.page.orientation}},orientation: Page.Orientation.{{footer.page.orientation}}{{/if}} }, props ));
+        super(Object.assign({ {{#if footer.page.orientation}}orientation: Page.Orientation.{{footer.page.orientation}}{{/if}} }, props ));
         {{#if footer.page.safeAreaEnabled}}this.ios && (this.ios.safeAreaLayoutMode = true);{{/if}}this.children["statusBar"] = this.statusBar || {};
 		this.children["headerBar"] = this.headerBar || {};
         {{#each children}}this.addChildByName(new {{constructorName}}(), {{json name}});{{/each}}
@@ -40,6 +40,7 @@ class {{capitalizeFirstLetter pageName}} extends Page {
         pageContextPatch(this, {{json name}});
         this.applyTestIDs({{json footer.page.testId}});
     }
+    {{> onLoad footer}}
     addChild(child: View, name?: string, classNames?: string, userProps?: { [key: string]: any; }, defaultClassNames?: string): void {
         if (this['layout']) {
 			this['layout'].addChild(child);
