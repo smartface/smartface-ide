@@ -1,5 +1,6 @@
 const LibraryService = require("@smartface/library-reader");
 const chokidar = require('chokidar');
+const fs = require('fs');
 
 let watcher;
 let timeout;
@@ -7,17 +8,27 @@ let timeout;
 function watch(libraryFolder, handler) {
   watcher && watcher.close();
   watcher = chokidar.watch(`${libraryFolder}/*.!(pgx)cpx`, {
-    ignoreInitial: false
+    ignoreInitial: false,
   });
   let readCounter = 0;
-  watcher.on('all', (e, filename) => {
-    timeout && clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      console.log('Watcher ..> ', e, ' . ', filename);
-      LibraryService.read(libraryFolder, (e, res) => {
+  fs.readdir(libraryFolder, (e, files) => {
+    if (e) {
+      return handler(e);
+    }
+    if (!files.some(f => f.endsWith('.cpx'))) {
+      return LibraryService.read(libraryFolder, (e, res) => {
         handler(e, res);
       });
-    }, 800);
+    }
+    watcher.on('all', (e, filename) => {
+      timeout && clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        console.log('Watcher ..> ', e, ' . ', filename);
+        LibraryService.read(libraryFolder, (e, res) => {
+          handler(e, res);
+        });
+      }, 800);
+    });
   });
 }
 
