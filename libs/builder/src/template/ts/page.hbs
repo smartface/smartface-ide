@@ -1,10 +1,15 @@
 {{> header}}
 import pageContextPatch from '@smartface/contx/lib/smartface/pageContextPatch';
-import { Styleable, ViewType } from '{{coreLibPath}}/Styleable';
+import { styleablePageMixin } from "@smartface/styling-context/lib/styleablePageMixin";
+import { styleableComponentMixin, styleableContainerComponentMixin } from "@smartface/styling-context/lib/styleableComponentMixin";
+import { extendOfViewGroup } from "@smartface/styling-context/lib/extendOfViewGroup";
+import { Styleable, ViewType } from '@smartface/styling-context/lib/Styleable';
 import Page = require('@smartface/native/ui/page');
 import View = require('@smartface/native/ui/view');
-import { ComponentStyleContext } from 'generated/core/ComponentStyleContext';
+import { ComponentStyleContext } from '@smartface/styling-context/lib/ComponentStyleContext';
 import System = require('@smartface/native/device/system');
+import StatusBar = require("@smartface/native/application/statusbar");
+import HeaderBar = require("@smartface/native/ui/headerbar");
 
 {{require smfObjects footer ""}}
 {{getRequiredIrregularEnums smfObjects}}
@@ -12,9 +17,19 @@ import System = require('@smartface/native/device/system');
 {{!-- declare namespace {{capitalizeFirstLetter pageName}} {
     export type ChildrenNames = {{#each children}} | {{json name}}{{/each}};
 } --}}
-class {{capitalizeFirstLetter pageName}} extends Page {
-    dispatch: (action: {[key: string]: any}) => void;
-    children: { [key: string]: any } = {};
+
+interface {{capitalizeFirstLetter pageName}}Children {
+    {{#each smfObjects}} {{name}}?: {{varName}}; {{/each}}
+  statusBar?: StatusBar;
+  headerBar?: HeaderBar;
+  [key: string]: any;
+};
+
+class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
+    private _children: {{capitalizeFirstLetter pageName}}Children;
+    get children(): Readonly<{{capitalizeFirstLetter pageName}}Children> {
+        return this._children;
+    }
     
     static $$styleContext: ComponentStyleContext = {
 	classNames: {{json footer.page.className}},
@@ -30,11 +45,11 @@ class {{capitalizeFirstLetter pageName}} extends Page {
 		defaultClassNames: {{json footer.headerBar.defaultClassNames}},
 		userProps: {{#isEmpty footer.headerBar.props}} {} {{else}}{{> eachHelper props=footer.headerBar.props}}{{/isEmpty}}
 	}};
-    {{#each componentsAssignedToPage}}{{name}}: StyleContextComponentType<{{klass}}>;{{/each}}
+    {{#each componentsAssignedToPage}}{{name}}: {{klass}};{{/each}}
     constructor(props?: any) {
         super(Object.assign({ {{#if footer.page.orientation}}orientation: Page.Orientation.{{footer.page.orientation}}{{/if}} }, props ));
-        {{#if footer.page.safeAreaEnabled}}this.ios && (this.ios.safeAreaLayoutMode = true);{{/if}}this.children["statusBar"] = this.statusBar || {};
-		this.children["headerBar"] = this.headerBar || {};
+        {{#if footer.page.safeAreaEnabled}}this.ios && (this.ios.safeAreaLayoutMode = true);{{/if}}this._children["statusBar"] = this.statusBar;
+		this._children["headerBar"] = this.headerBar;
         {{#each children}}this.addChildByName(new {{constructorName}}(), {{json name}});{{/each}}
         {{#each componentsAssignedToPage}}this.{{name}} = {{ref}};{{/each}}
         pageContextPatch(this, {{json name}});
@@ -44,19 +59,17 @@ class {{capitalizeFirstLetter pageName}} extends Page {
     addChild(child: View, name?: string, classNames?: string, userProps?: { [key: string]: any; }, defaultClassNames?: string): void {
         if (this['layout']) {
 			this['layout'].addChild(child);
-		} else {
-			this.addChild(child);
 		}
     }
     addChildByName(child: View, name: string) {
-        this.children[name] = child;
-        this.addChild(child);
+        this._children[name] = child;
+        this.addStyleableChild(child, name);
     }
     applyTestIDs(testId: string){
-        Object.keys(this.children).forEach( child => {
-            this.children[child].testId = testId + '_' + child.charAt(0).toUpperCase() + child.slice(1);
-            if(this.children[child].applyTestIDs){
-                this.children[child].applyTestIDs(this.children[child].testId);
+        Object.keys(this._children).forEach( child => {
+            this._children[child].testId = testId + '_' + child.charAt(0).toUpperCase() + child.slice(1);
+            if(this._children[child].applyTestIDs){
+                this._children[child].applyTestIDs(this._children[child].testId);
             }
         });
     }

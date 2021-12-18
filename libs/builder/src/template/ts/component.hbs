@@ -1,19 +1,30 @@
 {{> header}}
 import { Styleable } from '{{coreLibPath}}/Styleable';
 import View = require('@smartface/native/ui/view');
-import { ComponentStyleContext } from 'generated/core/ComponentStyleContext';
+import { ComponentStyleContext } from '@smartface/styling-context/lib/ComponentStyleContext';
+import { extendOfViewGroup } from "@smartface/styling-context/lib/extendOfViewGroup";
+import { styleableComponentMixin, styleableContainerComponentMixin } from "@smartface/styling-context/lib/styleableComponentMixin";
 import System = require('@smartface/native/device/system');
 
 {{require this footer "true"}} {{getRequiredIrregularEnums smfObjects}}
 {{getRequiredLibModules smfObjects "true"}}
 
-export default class {{capitalizeFirstLetter libraryType}} extends {{type}} implements Styleable {
-    dispatch: (action: {[key: string]: any}) => void;
+interface {{capitalizeFirstLetter libraryType}}Children {
+    {{#each smfObjects}} {{name}}?: {{varName}}; {{/each}}
+    [key: string]: any;
+};
+
+	export default class {{capitalizeFirstLetter libraryType}} extends {{#if isContainerComponent}} 
+  styleableContainerComponentMixin({{type}}) {{else}}
+   styleableComponentMixin({{type}}) {{/if}} {
     {{#isEqual type "ShimmerFlexLayout"}}
         layout: FlexLayout;
     {{/isEqual}}
     {{!-- TODO: only container components --}}
-    children: { [key: string]: any } = {};
+    private _children: {{capitalizeFirstLetter libraryType}}Children
+    get children(): Readonly<{{capitalizeFirstLetter libraryType}}Children> {
+        return this._children;
+    }
     {{!-- {{#if smfObjects}}{{#isRepeatedView type}} {{else}}children: { [key: string]: any } = {};{{/isRepeatedView}}{{/if}} --}}
     static $$styleContext: ComponentStyleContext = { 
 	classNames: {{json className}},
@@ -22,8 +33,8 @@ export default class {{capitalizeFirstLetter libraryType}} extends {{type}} impl
     {{#isRepeatedView type}}
         private itemIndex = 0;
 	{{/isRepeatedView}}
-    {{#each componentsAssignedToRoot}}{{name}}: StyleContextComponentType<{{klass}}>;{{/each}}
-    constructor(props?: ConstructorParameters<typeof {{type}}>) {
+    {{#each componentsAssignedToRoot}}{{name}}: {{klass}};{{/each}}
+    constructor(props?: any) {
     super(
     {{#if layoutManager }} { {{> gridViewBody layoutManager=./layoutManager }} {{#isEmpty attributes}}{{else}},...{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}}    } {{else}}
 	{{#isEmpty attributes}}{{else}}{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}} {{/if}});
@@ -45,8 +56,8 @@ export default class {{capitalizeFirstLetter libraryType}} extends {{type}} impl
     {{#if isLibraryPage}}this.testId = {{json testId}}; {{/if}}
     }
     {{#if smfObjects}}{{#isRepeatedView type}} {{else}} addChildByName(child: View, name: string) {
-        this.children[name] = child;
-        this.addChild(child);
+        this._children[name] = child;
+        this.addStyleableChild(child, name);
     }
     {{!-- TODO: Use only container components --}}
     {{!-- Context's addchild method definition --}}
@@ -59,10 +70,10 @@ export default class {{capitalizeFirstLetter libraryType}} extends {{type}} impl
     }
     {{/isRepeatedView}}{{/if}}{{#if ifNeededApplyingTestId}}
     applyTestIDs(testId: string){
-        Object.keys(this.children).forEach( child => {
-            this.children[child].testId = testId + '_' + child.charAt(0).toUpperCase() + child.slice(1);
-            if(this.children[child].applyTestIDs){
-                this.children[child].applyTestIDs(this.children[child].testId);
+        Object.keys(this._children).forEach( child => {
+            this._children[child].testId = testId + '_' + child.charAt(0).toUpperCase() + child.slice(1);
+            if(this._children[child].applyTestIDs){
+                this._children[child].applyTestIDs(this._children[child].testId);
             }
         });
     }{{/if}}

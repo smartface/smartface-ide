@@ -22,6 +22,14 @@ const REPEATED_VIEW_ITEM_MAP = {
     "GridView": "GridViewItem"
 };
 
+const CONTAINER_COMPONENTS = {
+    'FlexLayout': 'FlexLayout',
+    'ScrollView': 'ScrollView',
+    'ShimmerFlexLayout': 'ShimmerFlexLayout',
+    "ListViewItem": "ListViewItem",
+    "GridViewItem": "GridViewItem"
+};
+
 const STATIC_COMPONENTS = {
     "StatusBar": "statusBar",
     "HeaderBar": "headerBar",
@@ -273,6 +281,9 @@ function parseComponent(obj, parentComponent) {
                 //console.log(parsedSmfObject.name, `  libraryType: `, parsedSmfObject.libraryType);
             }
         }
+    }
+    if (CONTAINER_COMPONENTS[parsedSmfObject.type]){
+        parsedSmfObject.isContainerComponent = true;
     }
     return parsedSmfObject;
 }

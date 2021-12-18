@@ -15,7 +15,8 @@ const PROJECT_TYPES = {
 };
 
 const FORMATTER_SETTINGS = {
-  useTabs: true,
+  useTabs: false,
+  tabWidth: 2,
   singleQuote: true,
   parser: 'typescript',
   printWidth: 150
