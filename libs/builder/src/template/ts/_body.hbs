@@ -14,7 +14,7 @@
 		{{#if isLibraryComponent}}{{libraryType}}{{else}}{{type}}{{/if}}
 	{{/if}}) {{/if}} {
     {{#if smfObjects}} {{#isRepeatedView type}} {{else}}
-    private _children: {{capitalizeFirstLetter varName}}Children;
+    private _children: {{capitalizeFirstLetter varName}}Children = {};
     get children(): Readonly<{{capitalizeFirstLetter varName}}Children> {
         return this._children;
     }

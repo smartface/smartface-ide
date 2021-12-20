@@ -1,13 +1,9 @@
 {{> header}}
-import pageContextPatch from '@smartface/contx/lib/smartface/pageContextPatch';
 import { styleablePageMixin } from "@smartface/styling-context/lib/styleablePageMixin";
 import { styleableComponentMixin, styleableContainerComponentMixin } from "@smartface/styling-context/lib/styleableComponentMixin";
-import { extendOfViewGroup } from "@smartface/styling-context/lib/extendOfViewGroup";
-import { Styleable, ViewType } from '@smartface/styling-context/lib/Styleable';
 import Page = require('@smartface/native/ui/page');
 import View = require('@smartface/native/ui/view');
 import { ComponentStyleContext } from '@smartface/styling-context/lib/ComponentStyleContext';
-import System = require('@smartface/native/device/system');
 import StatusBar = require("@smartface/native/application/statusbar");
 import HeaderBar = require("@smartface/native/ui/headerbar");
 
@@ -26,7 +22,7 @@ interface {{capitalizeFirstLetter pageName}}Children {
 };
 
 class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
-    private _children: {{capitalizeFirstLetter pageName}}Children;
+    private _children: {{capitalizeFirstLetter pageName}}Children = {};
     get children(): Readonly<{{capitalizeFirstLetter pageName}}Children> {
         return this._children;
     }
@@ -47,12 +43,11 @@ class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
 	}};
     {{#each componentsAssignedToPage}}{{name}}: {{klass}};{{/each}}
     constructor(props?: any) {
-        super(Object.assign({ {{#if footer.page.orientation}}orientation: Page.Orientation.{{footer.page.orientation}}{{/if}} }, props ));
-        {{#if footer.page.safeAreaEnabled}}this.ios && (this.ios.safeAreaLayoutMode = true);{{/if}}this._children["statusBar"] = this.statusBar;
-		this._children["headerBar"] = this.headerBar;
+        super(Object.assign({ name: '{{capitalizeFirstLetter name}}' {{#if footer.page.orientation}},orientation: Page.Orientation.{{footer.page.orientation}}{{/if}} }, props ));
+        {{#if footer.page.safeAreaEnabled}}this.ios && (this.ios.safeAreaLayoutMode = true);{{/if}}this._children.statusBar = this.statusBar;
+		this._children.headerBar = this.headerBar;
         {{#each children}}this.addChildByName(new {{constructorName}}(), {{json name}});{{/each}}
         {{#each componentsAssignedToPage}}this.{{name}} = {{ref}};{{/each}}
-        pageContextPatch(this, {{json name}});
         this.applyTestIDs({{json footer.page.testId}});
     }
     {{> onLoad footer}}

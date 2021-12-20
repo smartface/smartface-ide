@@ -21,7 +21,7 @@ interface {{capitalizeFirstLetter libraryType}}Children {
         layout: FlexLayout;
     {{/isEqual}}
     {{!-- TODO: only container components --}}
-    private _children: {{capitalizeFirstLetter libraryType}}Children
+    private _children: {{capitalizeFirstLetter libraryType}}Children = {};
     get children(): Readonly<{{capitalizeFirstLetter libraryType}}Children> {
         return this._children;
     }
