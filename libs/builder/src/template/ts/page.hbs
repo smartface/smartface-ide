@@ -45,12 +45,15 @@ class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
 	}};
     {{#each componentsAssignedToPage}}{{name}}: {{klass}};{{/each}}
     constructor(props?: any) {
-        super(Object.assign({ name: '{{capitalizeFirstLetter name}}' {{#if footer.page.orientation}},orientation: Page.Orientation.{{footer.page.orientation}}{{/if}} }, props ));
-        {{#if footer.page.safeAreaEnabled}}this.ios && (this.ios.safeAreaLayoutMode = true);{{/if}}this._children.statusBar = this.statusBar;
-		this._children.headerBar = this.headerBar;
+        super(Object.assign({ {{#if footer.page.orientation}}orientation: Page.Orientation.{{footer.page.orientation}}{{/if}} }, props ));
+        {{#if footer.page.safeAreaEnabled}}this.ios && (this.ios.safeAreaLayoutMode = true);{{/if}}this._children.statusBar = this.statusBar || {} as any;
+		this._children.headerBar = this.headerBar || {} as any;
         {{#each children}}this.addChildByName(new {{constructorName}}(), {{json name}});{{/each}}
         {{#each componentsAssignedToPage}}this.{{name}} = {{ref}};{{/each}}
         this.applyTestIDs({{json footer.page.testId}});
+    }
+    getName(){
+        return '{{capitalizeFirstLetter name}}';
     }
     {{> onLoad footer}}
     addChild(child: View<any>, name?: string, classNames?: string, userProps?: { [key: string]: any; }, defaultClassNames?: string): void {
@@ -61,6 +64,7 @@ class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
     addChildByName(child: View<any>, name: string) {
         this._children[name] = child;
         this.addStyleableChild(child, name);
+        this.addChild(child);
     }
     applyTestIDs(testId: string){
         Object.keys(this._children).forEach( child => {
