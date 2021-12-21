@@ -55,13 +55,13 @@ interface {{capitalizeFirstLetter libraryType}}Children {
 	{{/isRepeatedView}}
     {{#if isLibraryPage}}this.testId = {{json testId}}; {{/if}}
     }
-    {{#if smfObjects}}{{#isRepeatedView type}} {{else}} addChildByName(child: View, name: string) {
+    {{#if smfObjects}}{{#isRepeatedView type}} {{else}} addChildByName(child: View<any>, name: string) {
         this._children[name] = child;
         this.addStyleableChild(child, name);
     }
     {{!-- TODO: Use only container components --}}
     {{!-- Context's addchild method definition --}}
-    addChild(child: View, name?: string, classNames?: string, userProps?: { [key: string]: any; }, defaultClassNames?: string): void {
+    addChild(child: View<any>, name?: string, classNames?: string, userProps?: { [key: string]: any; }, defaultClassNames?: string): void {
         if (this['layout']) {
             this['layout'].addChild(child);
         } else {

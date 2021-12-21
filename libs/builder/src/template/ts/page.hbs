@@ -1,9 +1,11 @@
 {{> header}}
+import pageContextPatch from '@smartface/contx/lib/smartface/pageContextPatch';
 import { styleablePageMixin } from "@smartface/styling-context/lib/styleablePageMixin";
 import { styleableComponentMixin, styleableContainerComponentMixin } from "@smartface/styling-context/lib/styleableComponentMixin";
 import Page = require('@smartface/native/ui/page');
 import View = require('@smartface/native/ui/view');
 import { ComponentStyleContext } from '@smartface/styling-context/lib/ComponentStyleContext';
+import System = require('@smartface/native/device/system');
 import StatusBar = require("@smartface/native/application/statusbar");
 import HeaderBar = require("@smartface/native/ui/headerbar");
 
@@ -51,12 +53,12 @@ class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
         this.applyTestIDs({{json footer.page.testId}});
     }
     {{> onLoad footer}}
-    addChild(child: View, name?: string, classNames?: string, userProps?: { [key: string]: any; }, defaultClassNames?: string): void {
+    addChild(child: View<any>, name?: string, classNames?: string, userProps?: { [key: string]: any; }, defaultClassNames?: string): void {
         if (this['layout']) {
 			this['layout'].addChild(child);
 		}
     }
-    addChildByName(child: View, name: string) {
+    addChildByName(child: View<any>, name: string) {
         this._children[name] = child;
         this.addStyleableChild(child, name);
     }
