@@ -24,7 +24,7 @@ interface {{capitalizeFirstLetter pageName}}Children {
 };
 
 class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
-    private _children: {{capitalizeFirstLetter pageName}}Children = {};
+    protected _children: {{capitalizeFirstLetter pageName}}Children = {};
     get children(): Readonly<{{capitalizeFirstLetter pageName}}Children> {
         return this._children;
     }
