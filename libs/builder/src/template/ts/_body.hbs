@@ -47,7 +47,11 @@
 	{{/isRepeatedView}}
     {{#if isLibraryPage}}this.testId = {{json testId}}; {{/if}}
     }
-    {{#if smfObjects}} {{#isRepeatedView type}} {{else}} addChildByName(child: View<any>, name: string) {
+    {{#if smfObjects}} {{#isRepeatedView type}} {{else}}
+    /**
+    * @deprecated The method should not be used
+    */ 
+    addChildByName(child: View<any>, name: string) {
         this._children[name] = child;
         if (this['layout']) {
             this['layout'].addChild(child);

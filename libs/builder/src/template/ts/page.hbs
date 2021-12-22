@@ -60,7 +60,14 @@ class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
         if (this['layout']) {
 			this['layout'].addChild(child);
 		}
+        if (name) {
+            this.addStyleableChild(child, name, classNames, userProps, defaultClassNames);
+        }
     }
+
+    /**
+    * @deprecated The method should not be used
+    */
     addChildByName(child: View<any>, name: string) {
         this._children[name] = child;
         this.addStyleableChild(child, name);

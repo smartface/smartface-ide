@@ -55,7 +55,11 @@ interface {{capitalizeFirstLetter libraryType}}Children {
 	{{/isRepeatedView}}
     {{#if isLibraryPage}}this.testId = {{json testId}}; {{/if}}
     }
-    {{#if smfObjects}}{{#isRepeatedView type}} {{else}} addChildByName(child: View<any>, name: string) {
+    {{#if smfObjects}}{{#isRepeatedView type}} {{else}}
+    /**
+    * @deprecated The method should not be used
+    */
+    addChildByName(child: View<any>, name: string) {
         this._children[name] = child;
         this.addStyleableChild(child, name);
         this.addChild(child);
@@ -67,6 +71,9 @@ interface {{capitalizeFirstLetter libraryType}}Children {
             this['layout'].addChild(child);
         } else {
             super.addChild(child);
+        }
+        if (name) {
+            this.addStyleableChild(child, name, classNames, userProps, defaultClassNames);
         }
     }
     {{/isRepeatedView}}{{/if}}{{#if ifNeededApplyingTestId}}
