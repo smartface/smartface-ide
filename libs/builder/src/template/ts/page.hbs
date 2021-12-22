@@ -74,6 +74,18 @@ class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
             }
         });
     }
+    removeChild(child: View<any>) {
+        super.removeChild(child);
+        Object.keys(this._children).forEach((name) => {
+            if(child === this._children[name])
+            delete this._children[name]
+        })
+    }
+
+    removeChildren(){
+        this._children = {statusBar: this._children.statusBar, headerBar: this._children.headerBar};
+        super.removeChildren();
+    }
 }
 export default {{capitalizeFirstLetter pageName}};
 
