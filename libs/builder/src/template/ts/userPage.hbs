@@ -1,6 +1,7 @@
 import {{capitalizeFirstLetter pageName}}Design from '{{designFilePath}}';
+import { withDismissButton } from '@smartface/mixins'
 
- export default class {{capitalizeFirstLetter pageName}} extends {{capitalizeFirstLetter pageName}}Design {
+ export default class {{capitalizeFirstLetter pageName}} extends withDismissButton({{capitalizeFirstLetter pageName}}Design) {
 	constructor(){
 		super();
   }
