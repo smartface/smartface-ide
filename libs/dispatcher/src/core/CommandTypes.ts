@@ -45,6 +45,15 @@ export type ConsoleCommandType = {
     "id": number;
 }
 
+export type EmulatorCommandType = {
+  command: string;
+  data: {
+    emulatorsCount: number;
+    message?: string;
+  };
+  id: number;
+};
+
 export type FileSizeCommandType = {
     "command": 'fileSize';
     "data": { "size": number; }
@@ -57,4 +66,4 @@ export type CommandResponseType = {
     "id": number;
 }
 
-export type CommandType = GetIndexCommandType | GetFilesCommandType | ConsoleCommandType;
+export type CommandType = GetIndexCommandType | GetFilesCommandType | ConsoleCommandType | EmulatorCommandType;

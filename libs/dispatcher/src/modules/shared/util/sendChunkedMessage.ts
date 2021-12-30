@@ -4,23 +4,15 @@ import LogToConsole from '../LogToConsole';
 const MAX_CHUNK_SIZE = 10240; // In terms of bytes > 10 Kb
 
 export type WebsocketWithStream = WebSocket & {
-  stream: (
-    options: { binary?: boolean },
-    callback: (err: Error, send: (data: string | Buffer, isBinary: boolean) => void) => void
-  ) => void;
+  stream: (options: { binary?: boolean }, callback: (err: Error, send: (data: string | Buffer, isBinary: boolean) => void) => void) => void;
 };
-export default function sendChunkedMessage(
-  ws: WebsocketWithStream,
-  data: string | Buffer,
-  isBinary: boolean,
-  cb: (errors: string[], dataLengt?: number) => void
-) {
+export default function sendChunkedMessage(ws: WebsocketWithStream, data: string | Buffer, isBinary: boolean, cb: (errors: string[], dataLengt?: number) => void) {
   const options = isBinary
     ? {
         binary: true,
       }
     : {};
-  let callback = cb || (_ => _);
+  let callback = cb || ((_) => _);
   const errors = checkInput(ws, data);
 
   if (errors.length) {

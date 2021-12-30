@@ -67,6 +67,10 @@ export default function connectionResolver(wss: WebSocket.Server) {
                 initIDEWebSocket(browserGuid, ws);
             }
             logger.log('Connecting', service, browserGuid);
+            ws.on('message', msg => {
+                console.info('UI_WS >> ', msg);
+                EmulatorWS.sendUpdateConnectedDevices();
+            })
         } else {
             let emuWsItem = wsMap.getDeviceWebSocket(deviceId);
             if (!emuWsItem) {
