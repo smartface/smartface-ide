@@ -41,8 +41,17 @@ export default class WsMap {
     return this.devicewebsocket.delete(key);
   }
 
-  getAllDeviceWebSockets(): IterableIterator<EmulatorWS> {
-    return this.devicewebsocket.values();
+  getAllDeviceWebSockets(): EmulatorWS[] {
+    const res: EmulatorWS[] = [];
+    const itr = this.devicewebsocket.values();
+    let ws: IteratorResult<EmulatorWS>;
+    do {
+      ws = itr.next();
+      if (ws.value) {
+        res.push(ws.value);
+      }
+    } while (!ws.done);
+    return res;
   }
 
   getDeviceWebSocketCount(): number {
