@@ -59,33 +59,39 @@ export function sendToIDEWebSocket(
   }
 }
 
-export function sendToIDEEmulatorsAreReady(emuWses: EmulatorWS[]) {
+export function sendToIDEEmulatorsAreReady(deviceInfos: DeviceInfoType[]) {
   sendToIDEWebSocket('sendAll', {
     id: uuid.v4(),
     command: 'emulators_ready',
     data: {
-      deviceInfos: emuWses.map(emuWs => emuWs.deviceInfo),
+      deviceInfos,
     },
   });
 }
 
-export function sendToIDEEmulatorsAreUpdating(emuWses: EmulatorWS[]) {
+export function sendToIDEEmulatorsAreUpdating(deviceInfos: DeviceInfoType[]) {
   sendToIDEWebSocket('sendAll', {
     id: uuid.v4(),
     command: 'emulators_updating',
     data: {
-      deviceInfos: emuWses.map(emuWs => emuWs.deviceInfo),
+      deviceInfos,
     },
   });
 }
 
-export function sendToIDEEmulatorsAreUpdated(emuWses: EmulatorWS[], err?: string[]) {
+export function sendToIDEEmulatorsAreUpdated(
+  updatedDeviceInfos: DeviceInfoType[],
+  noChangesDeviceInfos: DeviceInfoType[],
+  errorDeviceInfos: DeviceInfoType[]
+) {
   sendToIDEWebSocket('sendAll', {
     id: uuid.v4(),
-    command: err ? 'emulators_error' : 'emulators_updated',
+    command: 'emulators_updated',
     data: {
-      message: err ? err.join(',') : 'Emulators updated.',
-      deviceInfos: emuWses.map(emuWs => emuWs.deviceInfo),
+      message: 'Emulators updated.',
+      updatedDeviceInfos,
+      noChangesDeviceInfos,
+      errorDeviceInfos,
     },
   });
 }

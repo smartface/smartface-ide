@@ -20,6 +20,7 @@ export type DeviceInfoType = {
   screenDPI: string;
   smartfaceVersion: string;
   isOverUSB: boolean;
+  errors?: string[];
 };
 
 export type GetIndexCommandType = {
@@ -50,7 +51,10 @@ export type EmulatorCommandType = {
   command: string;
   data: {
     message?: string;
-    deviceInfos: DeviceInfoType[];
+    deviceInfos?: DeviceInfoType[];
+    updatedDeviceInfos?: DeviceInfoType[];
+    noChangesDeviceInfos?: DeviceInfoType[];
+    errorDeviceInfos?: DeviceInfoType[];
   };
   id: number;
 };
