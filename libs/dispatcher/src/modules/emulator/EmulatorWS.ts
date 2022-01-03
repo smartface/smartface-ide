@@ -4,12 +4,7 @@ import { isConsoleCommands } from '../../core/connection';
 import LogToConsole from '../shared/LogToConsole';
 import WsMap from '../shared/WsMap';
 import parseEachJSON = require('ws-json-organizer');
-import {
-  sendToIDEEmulatorsAreReady,
-  sendToIDEEmulatorsAreUpdated,
-  sendToIDEEmulatorsAreUpdating,
-  sendToIDEWebSocket,
-} from '../ide';
+import { sendToIDEWebSocket } from '../ide';
 import GetFilesIndexCommand from './command/GetFilesIndexCommand';
 import sendChunkedMessage, { WebsocketWithStream } from '../shared/util/sendChunkedMessage';
 import createCommandMessage from '../shared/util/createCommandMessage';
@@ -22,6 +17,8 @@ import {
   GetIndexCommandType,
 } from '../../core/CommandTypes';
 import { FileInfoType } from '../../core/WorkspaceIndexTypes';
+import { sendReadyConnectedDevices } from './emulator-manager';
+import iOSMap from '../shared/workspace/iosmap';
 
 export enum EmulatorStatus {
   READY = 'READY',
@@ -41,6 +38,7 @@ export class EmulatorWS extends EventEmitter {
   static clearDeviceWs(deviceId: string) {
     WsMap.instance.delDeviceWebSocket(deviceId);
   }
+  private udpatingTimeoutTimer: NodeJS.Timeout;
   private logger: LogToConsole;
   private serviceWsMap: Map<string, WebSocket>;
   public deviceInfo: DeviceInfoType;
@@ -48,14 +46,14 @@ export class EmulatorWS extends EventEmitter {
   private _status: EmulatorStatus;
   private sentCrcSum: string = 'empty';
   private readyCrcSum: string = 'empty';
-  private set status(_status: EmulatorStatus) {
+  public set status(_status: EmulatorStatus) {
     this._status = _status;
     this.emit('statusChange', _status);
     if (_status === EmulatorStatus.ERROR) {
       this.logger.error(this.errors.join('\n'));
     }
   }
-  get status() {
+  public get status() {
     return this._status;
   }
   public errors: string[];
@@ -74,7 +72,7 @@ export class EmulatorWS extends EventEmitter {
 
   private calculateCrcSum(indexFiles: FileInfoType[]) {
     let crcSum = '';
-    indexFiles.forEach(f => (crcSum = crcSum + f.crc));
+    Object.keys(indexFiles).forEach(key => (crcSum = crcSum + indexFiles[key].crc));
     return crcSum;
   }
 
@@ -108,9 +106,15 @@ export class EmulatorWS extends EventEmitter {
         } else if (parsedMessage.command === 'getIndex') {
           this.deviceInfo = (parsedMessage as GetIndexCommandType).data;
           this.deviceInfo.isOverUSB = this.isOverUSB;
+          this.deviceInfo.brandModel =
+            iOSMap[this.deviceInfo.brandModel] || this.deviceInfo.brandModel;
           EmulatorWS.deviceInfos.set(this.deviceId, this.deviceInfo);
+          sendReadyConnectedDevices();
           this.sendUpdateCode();
         } else if (parsedMessage.command === 'getFiles') {
+          if (this.udpatingTimeoutTimer) {
+            clearTimeout(this.udpatingTimeoutTimer);
+          }
           const zipData = await new GetFilesDataCommand().execute({
             os: this.deviceInfo.os,
             files: (parsedMessage as GetFilesCommandType).data.files,
@@ -151,9 +155,11 @@ export class EmulatorWS extends EventEmitter {
       this.emit('close');
       EmulatorWS.clearDeviceWs(this.deviceId);
       this.serviceWsMap.delete(service);
-      EmulatorWS.sendReadyConnectedDevices();
+      sendReadyConnectedDevices();
     });
-    EmulatorWS.sendReadyConnectedDevices();
+    if (this.deviceInfo) {
+      sendReadyConnectedDevices();
+    }
   }
 
   async sendUpdateCode(cb?: (errs: string[]) => void) {
@@ -179,54 +185,12 @@ export class EmulatorWS extends EventEmitter {
         } else {
           console.info('Sendind Done.');
           cb && cb(null);
+          this.udpatingTimeoutTimer = setTimeout(() => {
+            this.status = EmulatorStatus.NOCHANGES;
+          }, 15000);
         }
       }
     );
-  }
-
-  static async sendUpdateConnectedDevices(deviceInfos: DeviceInfoType[]) {
-    const emuWses = deviceInfos.map(d => WsMap.instance.getDeviceWebSocket(d.deviceID));
-    if (emuWses.some(f => !f)) {
-      return sendToIDEEmulatorsAreUpdated(
-        emuWses.map(emu => emu.deviceInfo),
-        [],
-        deviceInfos
-          .filter(d => !WsMap.instance.getDeviceWebSocket(d.deviceID))
-          .map(d => ({ ...d, errors: ['No connected device found!'] }))
-      );
-    }
-    sendToIDEEmulatorsAreUpdating(deviceInfos);
-    let doneCount = 0;
-    let noChangesDeviceInfos: DeviceInfoType[] = [];
-    let updatedDeviceInfos: DeviceInfoType[] = [];
-    let errorDeviceInfos: (DeviceInfoType & { errors: string[] })[] = [];
-    let errors: string[] = [];
-    emuWses.forEach(emuWs => {
-      const onStatusChange = (status: EmulatorStatus) => {
-        if (emuWs.status === EmulatorStatus.ERROR) {
-          ++doneCount;
-          errors = errors.concat(emuWs.errors);
-          errorDeviceInfos.push({ ...emuWs.deviceInfo, errors: emuWs.errors });
-          emuWs.off('statusChange', onStatusChange);
-        } else if (emuWs.status === EmulatorStatus.UPDATED) {
-          ++doneCount;
-          emuWs.off('statusChange', onStatusChange);
-          updatedDeviceInfos.push(emuWs.deviceInfo);
-        } else if (emuWs.status === EmulatorStatus.NOCHANGES) {
-          ++doneCount;
-          noChangesDeviceInfos.push(emuWs.deviceInfo);
-        }
-        if (doneCount === emuWses.length) {
-          sendToIDEEmulatorsAreUpdated(updatedDeviceInfos, noChangesDeviceInfos, errorDeviceInfos);
-        }
-      };
-      emuWs.on('statusChange', onStatusChange);
-    });
-    emuWses.forEach(e => e.sendUpdateCode());
-  }
-
-  static async sendReadyConnectedDevices() {
-    sendToIDEEmulatorsAreReady(WsMap.instance.getAllDeviceWebSockets().map(i => i.deviceInfo));
   }
 }
 /*

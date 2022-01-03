@@ -3,15 +3,15 @@ import WebSocket = require('ws');
 import uuid = require('uuid');
 import parseEachJSON = require('ws-json-organizer');
 import { ConsoleCommandType, DeviceInfoType, EmulatorCommandType } from '../../core/CommandTypes';
-import { EmulatorWS } from '../emulator/EmulatorWS';
+import { sendUpdateConnectedDevices } from '../emulator/emulator-manager';
 
 export function initIDEWebSocket(browserGuid: string, ws: WebSocket) {
   WsMap.instance.setIDEWebSocket(browserGuid, ws);
   ws.on('message', msg =>
     parseEachJSON(msg.toString(), async (err, parsedMessage: EmulatorCommandType) => {
-      console.info('Get Command UI_WS >> ', parsedMessage.command);
+      console.info('Get Command UI_WS >> ', parsedMessage.command, parsedMessage.data);
       if (parsedMessage.command === 'emulators_update') {
-        EmulatorWS.sendUpdateConnectedDevices(parsedMessage.data.deviceInfos);
+        sendUpdateConnectedDevices(parsedMessage.data.deviceInfos);
       }
     })
   );
