@@ -17,7 +17,6 @@ const attributes = [
   "scrollEnabled",
   "subtitle",
   "keyboardAppearance",
-  "keyboardType",
   "children",
   "parent",
   "align",
