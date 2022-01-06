@@ -110,7 +110,7 @@ export class EmulatorWS extends EventEmitter {
             iOSMap[this.deviceInfo.brandModel] || this.deviceInfo.brandModel;
           EmulatorWS.deviceInfos.set(this.deviceId, this.deviceInfo);
           sendReadyConnectedDevices();
-          this.sendUpdateCode();
+          this.sendUpdateCode(false);
         } else if (parsedMessage.command === 'getFiles') {
           if (this.udpatingTimeoutTimer) {
             clearTimeout(this.udpatingTimeoutTimer);
@@ -162,13 +162,13 @@ export class EmulatorWS extends EventEmitter {
     }
   }
 
-  async sendUpdateCode(cb?: (errs: string[]) => void) {
+  async sendUpdateCode(isTriggerViaIDE: boolean = false, cb?: (errs: string[]) => void) {
     this.status = EmulatorStatus.UPDATING;
     let serviceWs: WebsocketWithStream = this.serviceWsMap.get('control') as WebsocketWithStream;
     const data = await new GetFilesIndexCommand().execute({ deviceInfo: this.deviceInfo });
     const files = data.files as FileInfoType[];
     this.readyCrcSum = this.calculateCrcSum(files);
-    if (this.sentCrcSum === this.readyCrcSum) {
+    if (this.sentCrcSum === this.readyCrcSum && isTriggerViaIDE) {
       this.status = EmulatorStatus.NOCHANGES;
       return;
     }

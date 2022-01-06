@@ -7,6 +7,7 @@ import { sendUpdateConnectedDevices } from '../emulator/emulator-manager';
 
 export function initIDEWebSocket(browserGuid: string, ws: WebSocket) {
   WsMap.instance.setIDEWebSocket(browserGuid, ws);
+  sendToIDEEmulatorsAreReady(WsMap.instance.getAllDeviceWebSockets().map(ws => ws.deviceInfo));
   ws.on('message', msg =>
     parseEachJSON(msg.toString(), async (err, parsedMessage: EmulatorCommandType) => {
       console.info('Get Command UI_WS >> ', parsedMessage.command, parsedMessage.data);
