@@ -30,7 +30,9 @@
 	constructor(props?: any) {
     super(
     {{#if layoutManager }} { {{> gridViewBody layoutManager=./layoutManager }} {{#isEmpty attributes}}{{else}},...{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}}    } {{else}}
-	{{#isEmpty attributes}}props{{else}}{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}} {{/if}});{{#if mtbTestId}}this.materialTextBox.testId='{{mtbTestId}}';{{/if}}
+	{{#isEmpty attributes}}props{{else}}{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}} {{/if}});{{#if mtbTestId}}this.materialTextBox.testId='{{mtbTestId}}';{{/if}}{{#if loadFromUrlImage}}
+    this.loadFromUrl({ url: {{json loadFromUrlImage}} });
+    {{/if}}
     {{#isRepeatedView type}} {{else}}
         {{#isEqual type "ShimmerFlexLayout"}}
             {{#if children.0.constructorName}}this.contentLayout = new {{children.0.constructorName}}(); this.layout = this.contentLayout; this.children['contentLayout'] = this.layout;{{else}}this.contentLayout = ( this.layout || new FlexLayout({flexGrow: 1})); this.layout = this.contentLayout; {{/if}} {{else}}

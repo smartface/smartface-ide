@@ -254,6 +254,13 @@ function parseComponent(obj, parentComponent) {
             title: navTitle
         };
         delete parsedSmfObject.props.ios;
+    } else if (type === 'ImageView' && parsedSmfObject.attributes.image) {
+        if (/http:\/\/|https:\/\//.test(parsedSmfObject.attributes.image)) {
+            parsedSmfObject.loadFromUrlImage = parsedSmfObject.attributes.image;
+            delete parsedSmfObject.attributes.image;
+        } else {
+            parsedSmfObject.attributes.image = `images://${parsedSmfObject.attributes.image}`;
+        }
     }
 
     if (REPEATED_VIEW_ITEM_MAP[type])
@@ -282,7 +289,7 @@ function parseComponent(obj, parentComponent) {
             }
         }
     }
-    if (CONTAINER_COMPONENTS[parsedSmfObject.type]){
+    if (CONTAINER_COMPONENTS[parsedSmfObject.type]) {
         parsedSmfObject.isContainerComponent = true;
     }
     return parsedSmfObject;
