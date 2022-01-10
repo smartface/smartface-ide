@@ -15,144 +15,146 @@ import LogToConsole from '../shared/LogToConsole';
 import Device from '../shared/workspace/device';
 
 const IMAGE_FORMAT = {
-    png: Jimp.MIME_PNG || 'image/png',
+  png: Jimp.MIME_PNG || 'image/png',
 };
 
 export default function createImageApi(app: Express, options: any = {}) {
-    const wsPath = ConfigurationService.instance.getWorkspacePath();
-    const tempPath = ConfigurationService.instance.getTempPath();
-    const logger = LogToConsole.instance;
-    logger.log('image serving ready...');
-    app.get(
-        ConfigurationService.baseImageServePath + '/:imageName',
-        async (req: Request, res: Response, next: NextFunction) => {
-            let device: Device = new Device({
-                resourceFolderOrder: _ => _,
-                os: req.query.os,
-                screen: {
-                    dp: req.query.density,
-                },
-                brandModel: req.query.brandModel,
-            });
-            let densityRatio = req.query.densityRatio || 1;
-            try {
-                if (req.query.resourceFolderOrder) {
-                    var resourceFolderOrder = (req.query.resourceFolderOrder as string).split(',');
-                    for (var i = 0; i < resourceFolderOrder.length; i++) {
-                        resourceFolderOrder[i] = '"' + resourceFolderOrder[i] + '"';
-                    }
-                    var functionBody = 'return [' + resourceFolderOrder + '];';
-                    var fn = new Function(functionBody);
-                    device.resourceFolderOrder = fn();
-                }
-            } catch (ex) {
-                debugger;
-            }
-
-            var zoomLevel = Number(req.query.zoomLevel) || 1;
-            var workspace = new Workspace({
-                path: wsPath,
-            });
-            var imageName = req.params.imageName;
-            var imageFormat = getImageFormat(imageName);
-            try {
-                if (imageFormat === 'gif')
-                    serveGifImage(
-                        req.query,
-                        path.join(wsPath, 'assets', imageName),
-                        densityRatio,
-                        zoomLevel,
-                        res
-                    );
-                else if (imageName !== '*') {
-                    const filesDetail = await workspace.getImage(device, req.params.imageName);
-                    var found = !!(filesDetail && Object.keys(filesDetail) && Object.keys(filesDetail)[0]);
-                    if (found) {
-                        var filePath = Object.keys(filesDetail)[0];
-                        //var fileInfo = index[filePath];
-                        sendImageBuffer(filePath, densityRatio, zoomLevel, imageFormat, res);
-                    } else {
-                        res.sendStatus(404);
-                    }
-                } else {
-                    const filesDetail = await workspace.getImage(device, req.params.imageName, false);
-                    var result = {};
-                    for (var p in filesDetail) {
-                        var item = filesDetail[p];
-                        item.path = p;
-                        var parsedPath = path.parse(p);
-                        var key = parsedPath.name.split('@')[0] + parsedPath.ext;
-                        result[key] = item;
-                    }
-                    res.json(result);
-                }
-            } catch (err) {
-                if (err) return handleError(err, res);
-            }
+  const wsPath = ConfigurationService.instance.getWorkspacePath();
+  const tempPath = ConfigurationService.instance.getTempPath();
+  const logger = LogToConsole.instance;
+  logger.log('image serving ready...');
+  app.get(
+    ConfigurationService.baseImageServePath + '/:imageName',
+    async (req: Request, res: Response, next: NextFunction) => {
+      let device: Device = new Device({
+        resourceFolderOrder: _ => _,
+        os: req.query.os,
+        screen: {
+          dp: req.query.density,
+        },
+        brandModel: req.query.brandModel,
+      });
+      let densityRatio = req.query.densityRatio || 1;
+      try {
+        if (req.query.resourceFolderOrder) {
+          var resourceFolderOrder = (req.query.resourceFolderOrder as string).split(',');
+          for (var i = 0; i < resourceFolderOrder.length; i++) {
+            resourceFolderOrder[i] = '"' + resourceFolderOrder[i] + '"';
+          }
+          var functionBody = 'return [' + resourceFolderOrder + '];';
+          var fn = new Function(functionBody);
+          device.resourceFolderOrder = fn();
         }
-    );
+      } catch (ex) {
+        debugger;
+      }
 
-    function serveGifImage(query, filePath, densityRatio, zoomLevel, response) {
-        let tempGifFile = path.join(tempPath, getRandomName('.gif'));
-        mkdirpAsync(tempPath).then(() => { });
-        execFile(gifsicle, ['--scale', zoomLevel, '-o', tempGifFile, filePath], err => {
-            if (err) return handleError(err, response);
-            if (query.frame !== undefined) {
-                gifFrames({ url: tempGifFile, frames: query.frame, utputType: 'png' }).then((
-                    frameData
-                ) => {
-                    //response.writeHead(200, { 'Content-Type': 'image/png' });
-                    let readable = frameData[0].getImage();
-                    response.contentType('image/png');
-                    readable.pipe(response);
-                    fs.unlink(tempGifFile, _ => _);
-                });
-            } else {
-                fs.readFile(tempGifFile, (err, data) => {
-                    if (err) return handleError(err, response);
-                    sendData(data, 'gif', response);
-                    fs.unlink(tempGifFile, _ => _);
-                });
-            }
+      var zoomLevel = Number(req.query.zoomLevel) || 1;
+      var workspace = new Workspace({
+        path: wsPath,
+      });
+      var imageName = req.params.imageName;
+      var imageFormat = getImageFormat(imageName);
+      console.info('IMAGE_FORMAT:> ', imageFormat, ' -- ', imageName);
+      try {
+        if (imageFormat === 'gif')
+          serveGifImage(
+            req.query,
+            path.join(wsPath, 'assets', imageName),
+            densityRatio,
+            zoomLevel,
+            res
+          );
+        else if (/^(http|https)/i.test(imageName)) {
+          console.info('IAMGE_INFO', densityRatio, ' - ', zoomLevel);
+          sendImageBuffer(imageName, 1, zoomLevel, imageFormat, res);
+        } else if (imageName !== '*') {
+          const filesDetail = await workspace.getImage(device, req.params.imageName);
+          var found = !!(filesDetail && Object.keys(filesDetail) && Object.keys(filesDetail)[0]);
+          if (found) {
+            var filePath = Object.keys(filesDetail)[0];
+            //var fileInfo = index[filePath];
+            sendImageBuffer(filePath, densityRatio, zoomLevel, imageFormat, res);
+          } else {
+            res.sendStatus(404);
+          }
+        } else {
+          const filesDetail = await workspace.getImage(device, req.params.imageName, false);
+          var result = {};
+          for (var p in filesDetail) {
+            var item = filesDetail[p];
+            item.path = p;
+            var parsedPath = path.parse(p);
+            var key = parsedPath.name.split('@')[0] + parsedPath.ext;
+            result[key] = item;
+          }
+          res.json(result);
+        }
+      } catch (err) {
+        if (err) return handleError(err, res);
+      }
+    }
+  );
+
+  function serveGifImage(query, filePath, densityRatio, zoomLevel, response) {
+    let tempGifFile = path.join(tempPath, getRandomName('.gif'));
+    mkdirpAsync(tempPath).then(() => {});
+    execFile(gifsicle, ['--scale', zoomLevel, '-o', tempGifFile, filePath], err => {
+      if (err) return handleError(err, response);
+      if (query.frame !== undefined) {
+        gifFrames({ url: tempGifFile, frames: query.frame, utputType: 'png' }).then(frameData => {
+          //response.writeHead(200, { 'Content-Type': 'image/png' });
+          let readable = frameData[0].getImage();
+          response.contentType('image/png');
+          readable.pipe(response);
+          fs.unlink(tempGifFile, _ => _);
         });
-    }
-
-    function sendImageBuffer(source, densityRatio, zoomLevel, imageFormat, response) {
-        Jimp.read(source, function (err, image) {
-            if (err) return handleError(err, response);
-            image.scale(densityRatio * zoomLevel /** fileInfo.scaleWith*/, function (err, image) {
-                if (err) return handleError(err, response);
-                image.getBuffer(IMAGE_FORMAT[imageFormat] || Jimp.AUTO, function (err, buffer) {
-                    if (err) return handleError(err, response);
-                    sendData(buffer, imageFormat, response);
-                });
-            });
+      } else {
+        fs.readFile(tempGifFile, (err, data) => {
+          if (err) return handleError(err, response);
+          sendData(data, 'gif', response);
+          fs.unlink(tempGifFile, _ => _);
         });
-    }
+      }
+    });
+  }
 
-    function sendData(data, imageFormat, response) {
-        response
-            .type(imageFormat)
-            .set({
-                'Pragma-directive': 'no-cache',
-                'Cache-directive': 'no-cache',
-                'Cache-control': 'no-cache',
-                Pragma: 'no-cache',
-                Expires: '0',
-            })
-            .send(data);
-    }
+  function sendImageBuffer(source, densityRatio, zoomLevel, imageFormat, response) {
+    Jimp.read(source, function(err, image) {
+      if (err) return handleError(err, response);
+      image.scale(densityRatio * zoomLevel /** fileInfo.scaleWith*/, function(err, image) {
+        if (err) return handleError(err, response);
+        image.getBuffer(IMAGE_FORMAT[imageFormat] || Jimp.AUTO, function(err, buffer) {
+          if (err) return handleError(err, response);
+          sendData(buffer, imageFormat, response);
+        });
+      });
+    });
+  }
 
-    function getImageFormat(filePath) {
-        return path
-            .parse(filePath)
-            .ext.substr(1)
-            .toLowerCase();
-    }
+  function sendData(data, imageFormat, response) {
+    response
+      .type(imageFormat)
+      .set({
+        'Pragma-directive': 'no-cache',
+        'Cache-directive': 'no-cache',
+        'Cache-control': 'no-cache',
+        Pragma: 'no-cache',
+        Expires: '0',
+      })
+      .send(data);
+  }
 
-    function handleError(err, response) {
-        response.sendStatus(500);
-        response.end(err.stack || err);
-        logger.log('[ERROR]', err);
-    }
+  function getImageFormat(filePath) {
+    return path
+      .parse(filePath)
+      .ext.substr(1)
+      .toLowerCase();
+  }
+
+  function handleError(err, response) {
+    response.sendStatus(500);
+    response.end(err.stack || err);
+    logger.log('[ERROR]', err);
+  }
 }

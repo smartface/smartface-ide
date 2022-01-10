@@ -74,7 +74,6 @@ const COLOR_PROP = [
 ];
 
 const IMAGE_PROP = [
-  'image',
   'backgroundImage',
   'thumbImage',
   'inactiveImage',

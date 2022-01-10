@@ -1,8 +1,9 @@
 import {{capitalizeFirstLetter pageName}}Design from '{{designFilePath}}';
+import { withDismissAndBackButton } from '@smartface/mixins'
 
- export default class {{capitalizeFirstLetter pageName}} extends {{capitalizeFirstLetter pageName}}Design {
+ export default class {{capitalizeFirstLetter pageName}} extends withDismissAndBackButton({{capitalizeFirstLetter pageName}}Design) {
 	constructor(){
-		super();
+		super({});
   }
 
 	/**
@@ -10,7 +11,7 @@ import {{capitalizeFirstLetter pageName}}Design from '{{designFilePath}}';
 	* This event is called when a page appears on the screen (everytime).
 	* @param {Object} parameters passed from Router.go function
 	*/
-	public onShow(parameters: any ) {
+	public onShow() {
 		super.onShow?.()
 	}
 

@@ -1,11 +1,11 @@
 import WebSocket = require('ws');
+import EventEmitter = require('events');
 import { isConsoleCommands } from '../../core/connection';
 import LogToConsole from '../shared/LogToConsole';
 import WsMap from '../shared/WsMap';
 import parseEachJSON = require('ws-json-organizer');
 import { sendToIDEWebSocket } from '../ide';
 import GetFilesIndexCommand from './command/GetFilesIndexCommand';
-import ackErrorGenerator from '../shared/util/ackErrorGenerator';
 import sendChunkedMessage, { WebsocketWithStream } from '../shared/util/sendChunkedMessage';
 import createCommandMessage from '../shared/util/createCommandMessage';
 import GetFilesDataCommand from './command/GetFilesDataCommand';
@@ -17,24 +17,63 @@ import {
   GetIndexCommandType,
 } from '../../core/CommandTypes';
 import { FileInfoType } from '../../core/WorkspaceIndexTypes';
+import { sendReadyConnectedDevices } from './emulator-manager';
+import iOSMap from '../shared/workspace/iosmap';
 
-export class EmulatorWS {
+export enum EmulatorStatus {
+  READY = 'READY',
+  UPDATING = 'UPDATING',
+  UPDATED = 'UPDATED',
+  ERROR = 'ERROR',
+  NOCHANGES = 'NOCHANGES',
+}
+
+export class EmulatorWS extends EventEmitter {
+  //cache deviceinfos.
+  static deviceInfos: Map<string, DeviceInfoType> = new Map();
+
   static setDeviceWs(deviceId: string, deviceWsMapItem: EmulatorWS) {
     WsMap.instance.setDeviceWebSocket(deviceId, deviceWsMapItem);
   }
   static clearDeviceWs(deviceId: string) {
     WsMap.instance.delDeviceWebSocket(deviceId);
   }
+  private udpatingTimeoutTimer: NodeJS.Timeout;
   private logger: LogToConsole;
   private serviceWsMap: Map<string, WebSocket>;
-  private deviceInfo: DeviceInfoType;
+  public deviceInfo: DeviceInfoType;
   private indexFiles: FileInfoType[] = [];
-
-  constructor(private deviceId: string, private browserGuid: string) {
+  private _status: EmulatorStatus;
+  private sentCrcSum: string = 'empty';
+  private readyCrcSum: string = 'empty';
+  public set status(_status: EmulatorStatus) {
+    this._status = _status;
+    this.emit('statusChange', _status);
+    if (_status === EmulatorStatus.ERROR) {
+      this.logger.error(this.errors.join('\n'));
+    }
+  }
+  public get status() {
+    return this._status;
+  }
+  public errors: string[];
+  constructor(public deviceId: string, public browserGuid: string, public isOverUSB: boolean) {
+    super();
     this.logger = LogToConsole.instance;
     EmulatorWS.setDeviceWs(deviceId, this);
     this.deviceId;
     this.serviceWsMap = new Map();
+    this.deviceInfo = EmulatorWS.deviceInfos.get(this.deviceId);
+    if (this.deviceInfo) {
+      this.deviceInfo.isOverUSB = this.isOverUSB;
+    }
+    this.status = EmulatorStatus.READY;
+  }
+
+  private calculateCrcSum(indexFiles: FileInfoType[]) {
+    let crcSum = '';
+    Object.keys(indexFiles).forEach(key => (crcSum = crcSum + indexFiles[key].crc));
+    return crcSum;
   }
 
   setupServiceWs(service: string, ws: WebSocket) {
@@ -49,10 +88,9 @@ export class EmulatorWS {
     serviceWs.on('message', message => {
       parseEachJSON(message.toString(), async (err, parsedMessage: CommandType) => {
         if (err) {
-          return setTimeout(() => {
-            this.logger.error(err);
-            throw err;
-          }, 1);
+          this.errors.push('parseEachJSON Error', err);
+          this.status = EmulatorStatus.ERROR;
+          return;
         }
         this.logger.log(service, 'ws.onMessage', this.deviceId, parsedMessage);
         if (parsedMessage.command && isConsoleCommands(parsedMessage.command)) {
@@ -67,15 +105,16 @@ export class EmulatorWS {
           });
         } else if (parsedMessage.command === 'getIndex') {
           this.deviceInfo = (parsedMessage as GetIndexCommandType).data;
-          const data = await new GetFilesIndexCommand().execute({ deviceInfo: this.deviceInfo });
-          this.indexFiles = data.files as FileInfoType[];
-          sendChunkedMessage(
-            serviceWs,
-            JSON.stringify(createCommandMessage('getFiles', data)),
-            false,
-            ackErrorGenerator('Error while sending "getIndex" command')
-          );
+          this.deviceInfo.isOverUSB = this.isOverUSB;
+          this.deviceInfo.brandModel =
+            iOSMap[this.deviceInfo.brandModel] || this.deviceInfo.brandModel;
+          EmulatorWS.deviceInfos.set(this.deviceId, this.deviceInfo);
+          sendReadyConnectedDevices();
+          this.sendUpdateCode(false);
         } else if (parsedMessage.command === 'getFiles') {
+          if (this.udpatingTimeoutTimer) {
+            clearTimeout(this.udpatingTimeoutTimer);
+          }
           const zipData = await new GetFilesDataCommand().execute({
             os: this.deviceInfo.os,
             files: (parsedMessage as GetFilesCommandType).data.files,
@@ -91,16 +130,21 @@ export class EmulatorWS {
             false,
             (err, result) => {
               if (err) {
-                return this.logger.error(
-                  '**ERROR** An error occured while sending the size of the file'
-                );
+                this.errors.push('**ERROR** An error occured while sending the size of the file');
+                this.status = EmulatorStatus.ERROR;
+              } else {
+                sendChunkedMessage(serviceWs, zipData, true, (err, result) => {
+                  if (err) {
+                    this.errors.push(
+                      '**ERROR** An error occured while sending the zip data of files'
+                    );
+                    this.status = EmulatorStatus.ERROR;
+                  } else {
+                    this.sentCrcSum = this.readyCrcSum;
+                    this.status = EmulatorStatus.UPDATED;
+                  }
+                });
               }
-              sendChunkedMessage(
-                serviceWs,
-                zipData,
-                true,
-                ackErrorGenerator('**ERROR** An error occured while sending the zip data of files')
-              );
             }
           );
         }
@@ -108,8 +152,48 @@ export class EmulatorWS {
     });
 
     serviceWs.on('close', e => {
+      this.emit('close');
       EmulatorWS.clearDeviceWs(this.deviceId);
       this.serviceWsMap.delete(service);
+      sendReadyConnectedDevices();
     });
+    if (this.deviceInfo) {
+      sendReadyConnectedDevices();
+    }
+  }
+
+  async sendUpdateCode(isTriggerViaIDE: boolean = false, cb?: (errs: string[]) => void) {
+    this.status = EmulatorStatus.UPDATING;
+    let serviceWs: WebsocketWithStream = this.serviceWsMap.get('control') as WebsocketWithStream;
+    const data = await new GetFilesIndexCommand().execute({ deviceInfo: this.deviceInfo });
+    const files = data.files as FileInfoType[];
+    this.readyCrcSum = this.calculateCrcSum(files);
+    if (this.sentCrcSum === this.readyCrcSum && isTriggerViaIDE) {
+      this.status = EmulatorStatus.NOCHANGES;
+      return;
+    }
+    this.indexFiles = files;
+    sendChunkedMessage(
+      serviceWs,
+      JSON.stringify(createCommandMessage('getFiles', data)),
+      false,
+      err => {
+        if (err) {
+          this.errors.push('Error while sending "getIndex" command', err.join(','));
+          this.status = EmulatorStatus.ERROR;
+          cb && cb(err);
+        } else {
+          console.info('Sendind Done.');
+          cb && cb(null);
+          this.udpatingTimeoutTimer = setTimeout(() => {
+            this.status = EmulatorStatus.NOCHANGES;
+          }, 15000);
+        }
+      }
+    );
   }
 }
+/*
+
+node ./lib/index.js --rootPath /Users/SMARTFACE/Desktop/son_boiler --bypasssecuritycheck --port 52200 --host 0.0.0.0  
+*/

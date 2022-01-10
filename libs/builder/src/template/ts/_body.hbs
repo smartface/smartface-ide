@@ -1,8 +1,24 @@
 {{#each smfObjects}}
-	class {{varName}} extends {{#if isModuleComp}}{{libraryType}}{{else}}
+    {{#if smfObjects}} {{#isRepeatedView type}} {{else}}
+    interface {{capitalizeFirstLetter varName}}Children {
+        {{#each smfObjects}} {{name}}?: {{varName}}; {{/each}}
+        [key: string]: any;
+    };
+    {{/isRepeatedView}}{{/if}}
+
+    
+	class {{varName}} extends {{#if isContainerComponent}}  styleableContainerComponentMixin({{#if isModuleComp}}{{libraryType}}{{else}}
 		{{#if isLibraryComponent}}{{libraryType}}{{else}}{{type}}{{/if}}
-	{{/if}} implements Styleable {
-    dispatch: (action: {[key: string]: any}) => void;{{#if smfObjects}} {{#isRepeatedView type}} {{else}}children: { [key: string]: any } = {};{{/isRepeatedView}}{{/if}}
+	{{/if}})
+  {{else}} styleableComponentMixin({{#if isModuleComp}}{{libraryType}}{{else}}
+		{{#if isLibraryComponent}}{{libraryType}}{{else}}{{type}}{{/if}}
+	{{/if}}) {{/if}} {
+    {{#if smfObjects}} {{#isRepeatedView type}} {{else}}
+    protected _children: {{capitalizeFirstLetter varName}}Children = {};
+    get children(): Readonly<{{capitalizeFirstLetter varName}}Children> {
+        return this._children;
+    }
+    {{/isRepeatedView}}{{/if}}
     static $$styleContext: ComponentStyleContext = { classNames: {{json className}},  defaultClassNames: {{json defaultClassNames}}, userProps:
 	{{#isEmpty props}} {} {{else}}{{> eachHelper props=props}}{{/isEmpty}} };
 	{{#isRepeatedView type}}
@@ -11,10 +27,12 @@
     {{#isEqual type "ShimmerFlexLayout"}}
         layout: FlexLayout;
     {{/isEqual}}
-	constructor() {
+	constructor(props?: any) {
     super(
     {{#if layoutManager }} { {{> gridViewBody layoutManager=./layoutManager }} {{#isEmpty attributes}}{{else}},...{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}}    } {{else}}
-	{{#isEmpty attributes}}{{else}}{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}} {{/if}});{{#if mtbTestId}}this.materialTextBox.testId='{{mtbTestId}}';{{/if}}
+	{{#isEmpty attributes}}props{{else}}{{> eachHelper props=attributes isAttribute=true rawProps=./rawProps}}{{/isEmpty}} {{/if}});{{#if mtbTestId}}this.materialTextBox.testId='{{mtbTestId}}';{{/if}}{{#if loadFromUrlImage}}
+    this.loadFromUrl({ url: {{json loadFromUrlImage}} });
+    {{/if}}
     {{#isRepeatedView type}} {{else}}
         {{#isEqual type "ShimmerFlexLayout"}}
             {{#if children.0.constructorName}}this.contentLayout = new {{children.0.constructorName}}(); this.layout = this.contentLayout; this.children['contentLayout'] = this.layout;{{else}}this.contentLayout = ( this.layout || new FlexLayout({flexGrow: 1})); this.layout = this.contentLayout; {{/if}} {{else}}
@@ -31,8 +49,12 @@
 	{{/isRepeatedView}}
     {{#if isLibraryPage}}this.testId = {{json testId}}; {{/if}}
     }
-    {{#if smfObjects}} {{#isRepeatedView type}} {{else}} addChildByName(child: View, name: string) {
-        this.children[name] = child;
+    {{#if smfObjects}} {{#isRepeatedView type}} {{else}}
+    /**
+    * @deprecated The method should not be used
+    */ 
+    addChildByName(child: View<any>, name: string) {
+        this._children[name] = child;
         if (this['layout']) {
             this['layout'].addChild(child);
         } else {
@@ -40,14 +62,14 @@
         }
     }{{/isRepeatedView}}{{/if}}{{#isEmpty ifNeededApplyingTestId}} {{else}}
     applyTestIDs(testId: string){
-        Object.keys(this.children).forEach( child => {
-            this.children[child].testId = testId + '_' + child.charAt(0).toUpperCase() + child.slice(1);
-            if(this.children[child].applyTestIDs){
-                this.children[child].applyTestIDs(this.children[child].testId);
+        Object.keys(this._children).forEach( child => {
+            this._children[child].testId = testId + '_' + child.charAt(0).toUpperCase() + child.slice(1);
+            if(this._children[child].applyTestIDs){
+                this._children[child].applyTestIDs(this._children[child].testId);
             }
         });
     }{{/isEmpty}}
     
-	}  
+	}
 	{{#if smfObjects}} {{> body footer=../footer pageName=../pageName}} {{/if}}
 	{{/each~}}

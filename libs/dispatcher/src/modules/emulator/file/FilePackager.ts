@@ -8,7 +8,7 @@ export default class FilePackager {
   private zipper: Zipper;
   private descriptor: DescriptorFile;
   logger: LogToConsole;
-  private fileMap: {[key: string]: { fileName: string, fileNameWithType: string}};
+  private fileMap: { [key: string]: { fileName: string; fileNameWithType: string } };
 
   constructor() {
     this.zipper = new Zipper();
@@ -29,7 +29,7 @@ export default class FilePackager {
       var fileName = this.fileMap[fullPath].fileName;
       fs.readFile(fullPath, (err, data) => {
         if (err) {
-          this.logger.log("**ERROR** Couldn't add file", fullPath);
+          this.logger.warn("**ERROR** Couldn't add file", fullPath);
         } else {
           this.descriptor.add(fileName, this.fileMap[fullPath].fileNameWithType);
           this.zipper.add(fileName, data);
