@@ -153,8 +153,7 @@ export default function createImageApi(app: Express, options: any = {}) {
   }
 
   function handleError(err, response) {
-    response.sendStatus(500);
-    response.end(err.stack || err);
+    response.status(500).send(err.stack || err.message || 'An error occured');
     logger.log('[ERROR]', err);
   }
 }
