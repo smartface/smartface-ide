@@ -19,6 +19,7 @@ const { checkComponentsTestID, writePgx } = require('./testid-checker');
 const { writeIdXml } = require('./prepare-id-xml');
 
 const BRACKET_END = "$(B_R-A_C-K_E-T)";
+const importExportRegex = /import|export/;
 
 const isExistsFileDir = util.isExistsFileDir,
     handlePgx = util.readPgx,
@@ -71,6 +72,7 @@ function WatcherHandler(isStandalone) {
     const pgxFolder = getPath("PGX_FOLDER");
     const uiFolder = getPath("UI_FOLDER");
     const pagesFolder = getPath("PAGES_FOLDER");
+    let watcherEnabledStatusFunc = () => { };
     modulesComps.startMarketplaceClient();
     libraryTranspiler.watchLibrary(path.join(pgxFolder, 'library'));
     libraryTranspiler.on("change", () => {
@@ -95,7 +97,7 @@ function WatcherHandler(isStandalone) {
                 });
             if (isStandalone) {
                 styleGeneration.initFolderPaths();
-                promiseArr.push(styleGeneration.generateStyles())
+                promiseArr.push(styleGeneration.generateStyles());
             }
             Promise.all(promiseArr).then(async res => {
                 if (isStandalone) {
@@ -104,7 +106,7 @@ function WatcherHandler(isStandalone) {
                 }
             }).catch((err) => {
                 console.error(err);
-                isStandalone && process.exit(1)
+                isStandalone && process.exit(1);
             });
         });
     }
@@ -121,7 +123,7 @@ function WatcherHandler(isStandalone) {
     }
 
     function transpilerHandler(filePath, classGeneration, trynum) {
-        return handlePgx(filePath).then(pgx => {
+        return handlePgx(filePath).then(async pgx => {
             if (!pgx) {
                 if (!trynum || trynum < 5) {
                     console.log("├─\n├─ ! --> Empty Data retry " + (trynum ? trynum : 1) + "\n├─\n");
@@ -133,17 +135,19 @@ function WatcherHandler(isStandalone) {
                 }
             }
             else {
-                const dirtyPage = checkComponentsTestID(pgx)
+                const dirtyPage = checkComponentsTestID(pgx);
                 const parsedObjectData = transpiler.parse(pgx.components);
                 //classGeneration !== false && styleGeneration.generateClassesMapAllFiles(path.dirname(filePath));
                 const resFilePath = prepareOutputFilePath(projectType, uiFolder, path.basename(filePath, ".pgx"));
                 parsedObjectData.coreLibPath = normalizePath(coreLibPath);
-                if (parsedObjectData.initialized === false) {
+                if (parsedObjectData.initialized === false && !parsedObjectData.oldName) {
                     createUserPageIfDoesNotExist({
                         pageName: parsedObjectData.name,
                         designFilePath: normalizePath(path.relative(getPath('SCRIPTS_FOLDER'), path.dirname(resFilePath))),
                         coreLibPath: parsedObjectData.coreLibPath
                     });
+                } else if (parsedObjectData.oldName) {
+                    await movePageUserFile(parsedObjectData.name, parsedObjectData.oldName, pgx, filePath);
                 }
                 emitGeneratedEvent(transpiler.generate(parsedObjectData), resFilePath, true);
                 if (dirtyPage) {
@@ -165,7 +169,7 @@ function WatcherHandler(isStandalone) {
                 }
             }, writeError);
     }
-
+    this.setWatcherEnabledStatusFunc = (_watcherEnabledStatusFunc) => watcherEnabledStatusFunc = _watcherEnabledStatusFunc;
     this.deleteScriptFile = deleteScriptHandler;
     this.changeHandler = transpilerHandler.bind(this);
     this.transpileAllPgxFiles = transpileAllPgxFiles.bind(this);
@@ -177,6 +181,53 @@ function WatcherHandler(isStandalone) {
 
     function _emitGeneratedEvent(content, filePath, changed) {
         this.emit("readyFileContent", content, filePath, changed);
+    }
+
+    async function movePageUserFile(pageName, oldPageName, pgx, pgxFilePath) {
+        const oldUserFilePath = path.join(pagesFolder, `${oldPageName}.${projectType}`);
+        const newUserFilePath = path.join(pagesFolder, `${pageName}.${projectType}`);
+
+        const existingResOld = await isExistsFileDir(oldUserFilePath);
+        const existingResNew = await isExistsFileDir(newUserFilePath);
+        console.log('|--- movePageUserFile \n|- ', oldUserFilePath, '\n|- ', newUserFilePath);
+        if ((existingResOld.existing && !existingResOld.dir) && (!existingResNew.existing || (existingResNew.existing && existingResNew.dir))) {
+            await fs.move(oldUserFilePath, newUserFilePath, { overwrite: true });
+            await fixImportStatement(newUserFilePath, { name: pageName, oldName: oldPageName });
+            watcherEnabledStatusFunc(false);
+            try {
+                await removeOldNameProp(pgx, pgxFilePath);
+            } catch (e) {
+                writeError({
+                    file: newUserFilePath,
+                    stack: e.stack,
+                }, 'PageSourceFile Writing Error');
+            }
+            setTimeout(() => watcherEnabledStatusFunc(true), 400);
+        } else {
+            writeError({
+                file: newUserFilePath,
+                stack: `${oldUserFilePath}:  ${JSON.stringify(existingResOld)}\n${newUserFilePath}:  ${JSON.stringify(existingResNew)}`
+            }, 'PageUserfiles Existing Error');
+        }
+    }
+
+    async function fixImportStatement(newUserFilePath, compRes) {
+        const oldVarName = util.capitalizeFirstLetter(compRes.oldName);
+        const newVarName = util.capitalizeFirstLetter(compRes.name);
+
+        const text = await fs.readFile(newUserFilePath, 'utf-8');
+        const lines = text.split('\n');
+        lines.forEach((line, index) => {
+            if (importExportRegex.test(line) && line.includes(oldVarName)) {
+                lines[index] = line.replaceAll(oldVarName, newVarName).replaceAll(compRes.oldName, compRes.name);
+            }
+        });
+        await fs.writeFile(newUserFilePath, lines.join('\n', 'utf-8'));
+    }
+
+    async function removeOldNameProp(content, pgxFilePath) {
+        content.components[0].oldName = undefined;
+        await fs.writeJSON(pgxFilePath, content, { spaces: '\t', overwrite: true });
     }
 
 }

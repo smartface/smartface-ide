@@ -7,6 +7,15 @@ const { isExistsFileDir } = util;
 const config = require('./src/config');
 const { readAndCheckComponentsTestID } = require('./src/testid-checker');
 
+if (!String.prototype.replaceAll) {
+  String.prototype.replaceAll = function (str, newStr) {
+    if (Object.prototype.toString.call(str).toLowerCase() === '[object regexp]') {
+      return this.replace(str, newStr);
+    }
+    return this.replace(new RegExp(str, 'g'), newStr);
+  };
+}
+
 module.exports = function (args) {
   taskHandler(args);
   args.workspacePath && config.setWorkspacePath(args.workspacePath);

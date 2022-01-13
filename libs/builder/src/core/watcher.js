@@ -27,6 +27,7 @@ function Watcher(callBack) {
   const themesFolder = getPath("THEMES_FOLDER");
   const pgxFolder = getPath("PGX_FOLDER");
   const uiFolder = getPath("UI_FOLDER");
+  let watcherEnabled = true;
 
   this.start = watcherHandler => {
     var taskCount = 2;
@@ -42,6 +43,9 @@ function Watcher(callBack) {
   };
 
   const _start = watcherHandler => {
+    watcherHandler.setWatcherEnabledStatusFunc((enabled) => {
+      watcherEnabled = enabled;
+    });
     styleGeneration.initFolderPaths();
     status = WATCHER_STATUS.RUNNING;
     watcherThemes = chokidar.watch(themesFolder, {
@@ -64,11 +68,14 @@ function Watcher(callBack) {
     });
 
     watcherPgxFolder.on("all", (eventType, filename) => {
+      if (!watcherEnabled) {
+        return console.warn('├─> Ignore Change > ', eventType, filename);
+      }
       if (eventType === "unlinkDir" && filename === pgxFolder)
         return stop();
       if (filename === pgxFolder)
         return;
-      if (new RegExp(`library${'\\'+path.sep}.*\.(pgx|cpx)`).test(filename)) {
+      if (new RegExp(`library${'\\' + path.sep}.*\.(pgx|cpx)`).test(filename)) {
         return; //skip library folder.
       }
       console.log("├─ 🔔  pgx ->", eventType, filename);
@@ -110,7 +117,7 @@ function Watcher(callBack) {
     var _opt = opt || {};
     if (status === WATCHER_STATUS.STOPPED) {
       return console.log("Watcher has already been stopped!");
-    }!_opt.silent && util.writeError(new Error(`Check Following Folders Exist\n - ${pgxFolder}\n - ${themesFolder}`),
+    } !_opt.silent && util.writeError(new Error(`Check Following Folders Exist\n - ${pgxFolder}\n - ${themesFolder}`),
       status === WATCHER_STATUS.RUNNING ? "Watcher Unlink Error" : "Watcher Starting Error");
     status = WATCHER_STATUS.STOPPED;
     watcherPgxFolder && watcherPgxFolder.close();
@@ -125,7 +132,7 @@ function Watcher(callBack) {
   this.stop = stop;
 
   function generateStyles() {
-    styleGeneration.generateStyles().then(res => {}, err => util.writeError(err, "Watcher -> Generating Styles Error"));
+    styleGeneration.generateStyles().then(res => { }, err => util.writeError(err, "Watcher -> Generating Styles Error"));
   }
 }
 

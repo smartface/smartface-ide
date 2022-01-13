@@ -91,6 +91,7 @@ function parsePgx(components) {
         item.varName = "$" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("$$");
         item.parentID = item.parent;
         item.initialized = component.initialized;
+        item.oldName = component.oldName;
         item.parent && (item.parent = idNameObjects[item.parent]);
         item.children && (item.children = item.children.map(child => {
             if (!idNameObjects[child])
@@ -151,6 +152,7 @@ function parsePgx(components) {
     //_smfObjects.reverse();
     return Object.assign({}, {
         initialized: components[0].initialized,
+        oldName: components[0].oldName,
         name: footer.page ? footer.page.name : '',
         pageName: footer.pageName,
         smfObjects: _smfObjects,

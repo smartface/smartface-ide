@@ -4,6 +4,7 @@ const fs = require('fs');
 
 let watcher;
 let timeout;
+let watcherEnabled = true;
 
 function watch(libraryFolder, handler) {
   watcher && watcher.close();
@@ -21,9 +22,12 @@ function watch(libraryFolder, handler) {
       });
     }
     watcher.on('all', (e, filename) => {
+      if (!watcherEnabled) {
+        return console.warn('├─> Ignore Change > ', filename);
+      }
       timeout && clearTimeout(timeout);
       timeout = setTimeout(() => {
-        console.log('Watcher ..> ', e, ' . ', filename);
+        console.log('├─ Watcher > ', e, ' . ', filename);
         LibraryService.read(libraryFolder, (e, res) => {
           handler(e, res);
         });
@@ -32,4 +36,11 @@ function watch(libraryFolder, handler) {
   });
 }
 
-module.exports = watch;
+function setWatcherEnabledStatus(enabled) {
+  watcherEnabled = enabled;
+}
+
+module.exports = {
+  watchLibrary: watch,
+  setWatcherEnabledStatus
+};
