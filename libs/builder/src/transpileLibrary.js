@@ -131,6 +131,8 @@ function TranspileLibrary() {
       }, util.writeError);
   }
 
+
+
   async function moveComponentUserFile(compRes) {
     const oldUserFilePath = prepareOutputFilePath(projectType, getPath("LIBRARY_USER_FOLDER"), util.capitalizeFirstLetter(compRes.oldName));
     const newUserFilePath = prepareOutputFilePath(projectType, getPath("LIBRARY_USER_FOLDER"), util.capitalizeFirstLetter(compRes.name));
@@ -141,16 +143,12 @@ function TranspileLibrary() {
     if ((existingResOld.existing && !existingResOld.dir) && (!existingResNew.existing || (existingResNew.existing && existingResNew.dir))) {
       await fs.move(oldUserFilePath, newUserFilePath, { overwrite: true });
       await fixImportStatement(newUserFilePath, compRes);
-      setWatcherEnabledStatus(false);
-      try {
-        await removeOldNameProp(compRes);
-      } catch (e) {
-        writeError({
-          file: newUserFilePath,
-          stack: e.stack,
-        }, 'ComponentSourceFile Writing Error');
-      }
-      setTimeout(() => setWatcherEnabledStatus(true), 300);
+      await removeOldNameProp(compRes);
+    } else if (!existingResOld.existing || existingResOld.dir) {
+      createLibraryUserFileIfDoesNotExist(compRes);
+      await removeOldNameProp(compRes);
+    } else if (existingResNew.existing && !existingResNew.dir) {
+      await removeOldNameProp(compRes);
     } else {
       writeError({
         file: newUserFilePath,
@@ -174,10 +172,19 @@ function TranspileLibrary() {
   }
 
   async function removeOldNameProp(compRes) {
-    const cpxFilePath = path.join(libraryCpxFolder, compRes.name + `.cpx`);
-    const content = await fs.readJSON(cpxFilePath);
-    content.components[0].oldName = undefined;
-    await fs.writeJSON(cpxFilePath, content, { spaces: '\t', overwrite: true });
+    setWatcherEnabledStatus(false);
+    try {
+      const cpxFilePath = path.join(libraryCpxFolder, compRes.name + `.cpx`);
+      const content = await fs.readJSON(cpxFilePath);
+      content.components[0].oldName = undefined;
+      await fs.writeJSON(cpxFilePath, content, { spaces: '\t', overwrite: true });
+    } catch (e) {
+      writeError({
+        file: cpxFilePath,
+        stack: e.stack,
+      }, 'ComponentSourceFile Writing Error');
+    }
+    setTimeout(() => setWatcherEnabledStatus(true), 300);
   }
 
   function init() {

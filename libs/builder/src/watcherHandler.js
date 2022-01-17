@@ -193,16 +193,9 @@ function WatcherHandler(isStandalone) {
         if ((existingResOld.existing && !existingResOld.dir) && (!existingResNew.existing || (existingResNew.existing && existingResNew.dir))) {
             await fs.move(oldUserFilePath, newUserFilePath, { overwrite: true });
             await fixImportStatement(newUserFilePath, { name: pageName, oldName: oldPageName });
-            watcherEnabledStatusFunc(false);
-            try {
-                await removeOldNameProp(pgx, pgxFilePath);
-            } catch (e) {
-                writeError({
-                    file: newUserFilePath,
-                    stack: e.stack,
-                }, 'PageSourceFile Writing Error');
-            }
-            setTimeout(() => watcherEnabledStatusFunc(true), 400);
+            await removeOldNameProp(pgx, pgxFilePath);
+        } else if (existingResNew.existing && !existingResNew.dir) {
+            await removeOldNameProp(pgx, pgxFilePath);
         } else {
             writeError({
                 file: newUserFilePath,
@@ -226,8 +219,18 @@ function WatcherHandler(isStandalone) {
     }
 
     async function removeOldNameProp(content, pgxFilePath) {
-        content.components[0].oldName = undefined;
-        await fs.writeJSON(pgxFilePath, content, { spaces: '\t', overwrite: true });
+        watcherEnabledStatusFunc(false);
+        try {
+            content.components[0].oldName = undefined;
+            await fs.writeJSON(pgxFilePath, content, { spaces: '\t', overwrite: true });
+            watcherEnabledStatusFunc(false);
+        } catch (e) {
+            writeError({
+                file: newUserFilePath,
+                stack: e.stack,
+            }, 'PageSourceFile Writing Error');
+        }
+        setTimeout(() => watcherEnabledStatusFunc(true), 400);
     }
 
 }
