@@ -21,5 +21,12 @@
   "homepage": "https://github.com/smartface/smartface-ide",
   "dependencies": {
     "tsc-watch": "^4.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "12",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.4",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.3.5"
   }
 }
