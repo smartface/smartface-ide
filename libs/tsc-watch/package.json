@@ -1,0 +1,25 @@
+{
+  "name": "@smartface/tsc-watch",
+  "version": "0.8.0-rc.0",
+  "description": "Smartface TS Compiler - Watch",
+  "main": "./lib/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "sf-tsc-watch": "./lib/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "rm -rf ./lib && tsc"
+  },
+  "author": "Smartface",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/smartface/smartface-ide"
+  },
+  "homepage": "https://github.com/smartface/smartface-ide",
+  "dependencies": {
+    "tsc-watch": "^4.6.0"
+  }
+}
