@@ -1,6 +1,7 @@
 node_modules
 .browser_modules
 /libs/**/lib
+!/libs/marketplace-service/src/lib
 *.log
 *-app/*
 !*-app/package.json
