@@ -261,7 +261,7 @@ const IRREGULAR_ENUMS = {
     createAttributedStrings: '@smartface/html-to-text'
   },
   import: {
-    propFactory: '@smartface/styling-context/lib/smartface/sfCorePropFactory',
+    propFactory: '@smartface/styling-context/lib/sfCorePropFactory',
     actionAddChild: '@smartface/styling-context/lib/action/addChild'
   }
 };
