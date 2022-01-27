@@ -1,0 +1,6 @@
+apps:
+  - script      : marketplace-service.js 
+    args        : "serviceStart --restart"
+    exec_mode   : fork
+    watch       : true
+    name        : 'marketplaceservice'
