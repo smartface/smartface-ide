@@ -9,7 +9,7 @@ import System from '@smartface/native/device/system';
 {{require this footer "true"}} {{getRequiredIrregularEnums smfObjects}}
 {{getRequiredLibModules smfObjects "true"}}
 
-interface {{capitalizeFirstLetter libraryType}}Children {
+interface ${{capitalizeFirstLetter libraryType}}Children {
     {{#each smfObjects}} {{name}}?: {{varName}}; {{/each}}
     [key: string]: any;
 };
