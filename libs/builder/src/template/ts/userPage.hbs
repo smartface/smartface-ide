@@ -1,8 +1,9 @@
 import {{capitalizeFirstLetter pageName}}Design from '{{designFilePath}}';
 import { withDismissAndBackButton } from '@smartface/mixins'
+import { Route, BaseRouter as Router } from '@smartface/router';
 
  export default class {{capitalizeFirstLetter pageName}} extends withDismissAndBackButton({{capitalizeFirstLetter pageName}}Design) {
-	constructor(){
+	constructor(private router?: Router, private route?: Route){
 		super({});
   }
 
