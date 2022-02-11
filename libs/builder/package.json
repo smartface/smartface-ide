@@ -1,7 +1,7 @@
 {
   "name": "@smartface/builder",
-  "version": "0.8.1",
-  "description": "smartface transpiler",
+  "version": "0.8.2",
+  "description": "Smartface Builder",
   "bin": {
     "smfcTranspiler": "bin/exec.js",
     "transpiler": "bin/service-index.js"
