@@ -1,6 +1,6 @@
 {
   "name": "@smartface/dispatcher",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Handles Emulator Dispatcher Part of SmartfaceCloud",
   "main": "./lib/index.js",
   "publishConfig": {
@@ -15,6 +15,7 @@
     "check-coverage": "istanbul check-coverage --statements 90 --branches 90 --functions 90 --lines 90",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
     "start": "npm run test",
+    "watch": "tsc -w",
     "start:dev": "env NODE_ENV=test MODE=debug STREAMER_RECONNECT_TIMEOUT=3000 ts-node-dev ./src/index.ts --rootPath=/projects/workspace",
     "killStart": "fuser -k 8081/tcp; node bin/index.js",
     "test": "TS_JEST_LOG=ts-jest.log jest",

@@ -56,7 +56,7 @@ export class EmulatorWS extends EventEmitter {
   public get status() {
     return this._status;
   }
-  public errors: string[];
+  public errors: string[] = [];
   constructor(public deviceId: string, public browserGuid: string, public isOverUSB: boolean) {
     super();
     this.logger = LogToConsole.instance;
