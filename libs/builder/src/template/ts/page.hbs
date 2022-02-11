@@ -1,12 +1,12 @@
 {{> header}}
-import { styleablePageMixin } from "@smartface/styling-context/lib/styleablePageMixin";
-import { styleableComponentMixin, styleableContainerComponentMixin } from "@smartface/styling-context/lib/styleableComponentMixin";
-import Page = require('@smartface/native/ui/page');
-import View = require('@smartface/native/ui/view');
+import { styleablePageMixin } from '@smartface/styling-context/lib/styleablePageMixin';
+import { styleableComponentMixin, styleableContainerComponentMixin } from '@smartface/styling-context/lib/styleableComponentMixin';
+import Page from '@smartface/native/ui/page';
+import View from '@smartface/native/ui/view';
 import { ComponentStyleContext } from '@smartface/styling-context/lib/ComponentStyleContext';
-import System = require('@smartface/native/device/system');
-import StatusBar = require("@smartface/native/application/statusbar");
-import HeaderBar = require("@smartface/native/ui/headerbar");
+import System from '@smartface/native/device/system';
+import StatusBar from '@smartface/native/application/statusbar';
+import HeaderBar from '@smartface/native/ui/headerbar';
 
 {{require smfObjects footer ""}}
 {{getRequiredIrregularEnums smfObjects}}
