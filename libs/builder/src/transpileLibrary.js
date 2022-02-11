@@ -58,6 +58,7 @@ function TranspileLibrary() {
       if (!res.initialized && !res.oldName) {
         createLibraryUserFileIfDoesNotExist(res);
       } else if (res.oldName) {
+        console.info('MOVE comp.', res);
         moveComponentUserFile(res);
       }
     });
@@ -174,7 +175,7 @@ function TranspileLibrary() {
   async function removeOldNameProp(compRes) {
     setWatcherEnabledStatus(false);
     try {
-      const cpxFilePath = path.join(libraryCpxFolder, compRes.name + `.cpx`);
+      const cpxFilePath = path.join(libraryCpxFolder, util.lowercaseFirstLetter(compRes.name) + `.cpx`);
       const content = await fs.readJSON(cpxFilePath);
       content.components[0].oldName = undefined;
       await fs.writeJSON(cpxFilePath, content, { spaces: '\t', overwrite: true });
