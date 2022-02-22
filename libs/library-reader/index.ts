@@ -5,10 +5,15 @@ import * as queue from 'async/queue';
 const LIB_NAME = '__library__';
 const LIB_FILE_NAME = 'index.pgx';
 const CONCURRENCY = 15;
+const SMARTFACE_DESİGN_REGEXP = /\.(pgx|cpx)/;
+
 let componentNameMap: Record<string, any> = {};
 
 type Callback<T = boolean | string> = (err: Error | null, resp?: T) => void;
 
+function isSmartfaceDesignFile(filename: string): boolean {
+  return SMARTFACE_DESİGN_REGEXP.test(filename);
+}
 function createLibraryFile(
   libFolderPath: string,
   data: string,
@@ -107,7 +112,7 @@ function read(libFolderPath: string, callback: Callback<Record<string, any>>) {
       } else callback(new Error('Library page component does not exist'));
     };
 
-    q.push(files || [], (err: Error) => {
+    q.push(files.filter(isSmartfaceDesignFile) || [], (err: Error) => {
       if (err) {
         console.error('an error occured while components collecting!', err);
         return callback(err);

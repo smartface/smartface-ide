@@ -7,7 +7,11 @@ var queue = require("async/queue");
 var LIB_NAME = '__library__';
 var LIB_FILE_NAME = 'index.pgx';
 var CONCURRENCY = 15;
+var SMARTFACE_DESİGN_REGEXP = /\.(pgx|cpx)/;
 var componentNameMap = {};
+function isSmartfaceDesignFile(filename) {
+    return SMARTFACE_DESİGN_REGEXP.test(filename);
+}
 function createLibraryFile(libFolderPath, data, callback) {
     var libIndexFilePath = path.join(libFolderPath, LIB_FILE_NAME);
     fs.stat(libIndexFilePath, function (e, stat) {
@@ -88,7 +92,7 @@ function read(libFolderPath, callback) {
             else
                 callback(new Error('Library page component does not exist'));
         };
-        q.push(files || [], function (err) {
+        q.push(files.filter(isSmartfaceDesignFile) || [], function (err) {
             if (err) {
                 console.error('an error occured while components collecting!', err);
                 return callback(err);

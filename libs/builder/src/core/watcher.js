@@ -77,6 +77,8 @@ function Watcher(callBack) {
         return;
       if (new RegExp(`library${'\\' + path.sep}.*\.(pgx|cpx)`).test(filename)) {
         return; //skip library folder.
+      }else if(!util.isSmartfaceDesignFile(filename)){
+        return console.warn('├─> Skip Change > ', eventType, filename);
       }
       console.log("├─ 🔔  pgx ->", eventType, filename);
       //console.log('eventTrype:' + eventType + ' filename provided:' + filename);
@@ -98,6 +100,9 @@ function Watcher(callBack) {
     watcherThemes.on("all", (eventType, filename) => {
       if (eventType === "unlinkDir" && filename === themesFolder)
         return stop();
+      if(!util.isStyleDesignFile(filename)) {
+        return console.warn('├─> Skip Change > ', eventType, filename); 
+      }
       ++themesGeneratorTaskCounter;
       setTimeout(_ => {
         if (--themesGeneratorTaskCounter === 0) {

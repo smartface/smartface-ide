@@ -8,6 +8,9 @@ const dot = require("dot-object");
 const bytes = require("bytes");
 
 const OK = 200;
+const SMARTFACE_DESİGN_REGEXP = /\.(pgx|cpx)/;
+const STYLE_DESIGN_REGEXP = /\.json/;
+
 /**
  * @function beautyTime
  * prepare beauty string for time.
@@ -352,6 +355,14 @@ function logToDispatcher(level, msg, cb) {
   // }
 }
 
+function isSmartfaceDesignFile(filename) {
+  return SMARTFACE_DESİGN_REGEXP.test(filename);
+}
+
+function isStyleDesignFile(filename) {
+  return STYLE_DESIGN_REGEXP.test(filename)
+}
+
 module.exports = {
   beautyTime: beautyTime,
   createClearDir: createClearDir,
@@ -369,5 +380,7 @@ module.exports = {
   writeMemUsage: writeMemUsage,
   getDegree: getDegree,
   getFamilyTree: getFamilyTree,
-  logToDispatcher: logToDispatcher
+  logToDispatcher: logToDispatcher,
+  isSmartfaceDesignFile,
+  isStyleDesignFile
 };

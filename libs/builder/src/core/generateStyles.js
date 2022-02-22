@@ -126,7 +126,8 @@ module.exports = (function () {
             let themeName = path.basename(themeDir);
 
             generatingBundles[themeName] = true;
-            recursiveReaddir(path.join(themeDir, "styles")).then(files => {
+            recursiveReaddir(path.join(themeDir, "styles")).then( (_files) => {
+                const files = _files.filter(util.isStyleDesignFile);
                 try {
                     indexJSON = fs.readJsonSync(path.join(themeDir, "index.json")) || {};
                 }

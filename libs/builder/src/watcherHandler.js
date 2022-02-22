@@ -91,7 +91,7 @@ function WatcherHandler(isStandalone) {
             if (err)
                 return console.error("transpileAllPgxFiles Error -> fs.readdir : pgxFolder -> " + err.toString());
             var promiseArr = [];
-            files.filter(item => (item != "library" && item != LIBRARY_FILE_NAME) && (item !== MODULES_FILE_NAME))
+            files.filter(item => (item != "library" && item != LIBRARY_FILE_NAME) && (item !== MODULES_FILE_NAME) && util.isSmartfaceDesignFile(item))
                 .forEach(item => {
                     promiseArr.push(changeHandler(path.join(pgxFolder, item), false));
                 });
