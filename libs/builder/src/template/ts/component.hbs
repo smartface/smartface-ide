@@ -42,7 +42,7 @@ interface ${{capitalizeFirstLetter libraryType}}Children {
     {{/if}}
     {{#isRepeatedView type}} {{else}}
         {{#isEqual type "ShimmerFlexLayout"}}
-            {{#if children.0.constructorName}}this.contentLayout = new {{children.0.constructorName}}(); this.layout = this.contentLayout; this.children['contentLayout'] = this.layout;{{else}}this.contentLayout = ( this.layout || new FlexLayout({flexGrow: 1})); this.layout = this.contentLayout; {{/if}} {{else}}
+            {{#if children.0.constructorName}}this.contentLayout = new {{children.0.constructorName}}(); this.layout = this.contentLayout; this._children.contentLayout = this.layout as {{children.0.constructorName}};{{else}}this.contentLayout = ( this.layout || new FlexLayout({flexGrow: 1})); this.layout = this.contentLayout; {{/if}} {{else}}
                 {{#each children}}this.addChildByName(new {{constructorName}}(), {{json name}});{{/each}}
                 {{#each componentsAssignedToRoot}}this.{{name}} = {{ref}};{{/each}}
         {{/isEqual}}
