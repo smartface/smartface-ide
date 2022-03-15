@@ -17,7 +17,7 @@ import HeaderBar from '@smartface/native/ui/headerbar';
 
 interface {{capitalizeFirstLetter pageName}}Children {
     {{#each smfObjects}} {{name}}?: {{varName}}; {{/each}}
-  statusBar?: StatusBar;
+  statusBar?: typeof StatusBar;
   headerBar?: HeaderBar;
   [key: string]: any;
 };
