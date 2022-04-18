@@ -6,6 +6,7 @@
         "borderRadius": "borderRadius",
         "borderColor": "borderColor",
         "borderWidth": "borderWidth",
+        "cursorColor": "cursorColor",
         "textColor": "textColor",
         "textAlignment": "textAlignment",
         "font": {
@@ -27,6 +28,7 @@
             "flexGrow": "flexGrow",
             "flexShrink": "flexShrink"
         },
+        "refreshEnabled": "refreshEnabled",
         "right": "right",
         "bottom": "bottom",
         "borderBottomWidth": "borderBottomWidth",
@@ -84,7 +86,6 @@
         "contentWidth": "contentWidth",
         "continuous": "continuous",
         "controlStyle": "controlStyle",
-        "count": "count",
         "decelerationRate": "decelerationRate",
         "defaultImage": "defaultImage",
         "defaultImageFile": "defaultImageFile",
@@ -300,7 +301,6 @@
         },
         "SearchView": {
             "searchViewStyle": "ios.searchViewStyle",
-            "cursorColor": "ios.cursorColor",
             "closeImage": "android.closeImage",
             "cancelButtonColor": "ios.cancelButtonColor",
             "showsCancelButton": "ios.showsCancelButton"
