@@ -1,6 +1,6 @@
-import NavigationController = require('@smartface/native/ui/navigationcontroller');
-import Page = require('@smartface/native/ui/page');
-import View = require('@smartface/native/ui/view');
+import NavigationController from '@smartface/native/ui/navigationcontroller';
+import Page from '@smartface/native/ui/page';
+import View from '@smartface/native/ui/view';
 import { ComponentStyleContext } from './ComponentStyleContext';
 
 export declare abstract class Styleable {
@@ -14,5 +14,5 @@ export interface ComponentWithNamedChildren {
 }
 
 export interface ComponentConstructor {
-  new(params?:any);
+  new (params?: any);
 }

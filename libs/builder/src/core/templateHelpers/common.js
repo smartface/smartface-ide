@@ -42,9 +42,7 @@ const ENUMS = {
   scrollDirection: 'LayoutManager.ScrollDirection'
 };
 
-const MAP_PROPS = [
-  'type'
-];
+const MAP_PROPS = ['type'];
 
 const FLEX_PROPS = [
   'alignSelf',
@@ -82,34 +80,22 @@ const IMAGE_PROP = [
   'backIndicatorImage'
 ];
 
-const TEXT_PROPS = [
-  'htmlText',
-  'text',
-  'title',
-  'subtitle',
-  'hint',
-  'placeHolder'
-];
+const TEXT_PROPS = ['htmlText', 'text', 'title', 'subtitle', 'hint', 'placeHolder'];
 
-const RAW_PROPS = [
-  'onItemLength',
-  'layoutManager'
-];
+const RAW_PROPS = ['onItemLength', 'layoutManager'];
 
-const IGNORE_PROPS = [
-  'name'
-];
+const IGNORE_PROPS = ['name'];
 
 function isValidProp(key) {
-  return (IGNORE_PROPS.indexOf(key) === -1);
+  return IGNORE_PROPS.indexOf(key) === -1;
 }
 
 function getString(_compiler) {
-  return function (key, value, type) {
+  return function(key, value, type) {
     const enumKey = ENUMS[key];
     const valueType = typeof value;
     let res = '';
-    if (TEXT_PROPS.some((k) => k === key) && valueType !== 'string') {
+    if (TEXT_PROPS.some(k => k === key) && valueType !== 'string') {
       // console.log("Text  Value : _> ", value, ": valueType:> ",valueType);
       return '""';
     }
@@ -139,7 +125,7 @@ function getString(_compiler) {
 function createColorForDevice(color) {
   let res = 'Color.create(';
   if (/rgb/i.test(color)) {
-    const rgba = color.match(/\d\.\d+|\d+/ig);
+    const rgba = color.match(/\d\.\d+|\d+/gi);
     res += `${(Number(rgba[3]) * 255).toFixed(0)}, ${rgba[0]}, ${rgba[1]}, ${rgba[2]}`;
   } else {
     res += `"${color}"`;
@@ -163,13 +149,16 @@ function getRequiredModules(_components, footer, isComponent) {
   const res = [];
   const requiredModules = {};
 
-  const components = _components.smfObjects ? [_components].concat(_components.smfObjects)
-    : _components instanceof Array ? _components : [_components];
+  const components = _components.smfObjects
+    ? [_components].concat(_components.smfObjects)
+    : _components instanceof Array
+    ? _components
+    : [_components];
 
   function searchAndSet(_comps) {
-    _comps.forEach((item) => {
+    _comps.forEach(item => {
       (!item.libraryType || isComponent) && (requiredModules[item.type] = true);
-      if (REPEATED_VIEW[item.type] && !(item.children && (item.children.length !== 0))) {
+      if (REPEATED_VIEW[item.type] && !(item.children && item.children.length !== 0)) {
         requiredModules[REPEATED_VIEW[item.type]] = true;
       }
       item.type === 'ShimmerFlexLayout' && (requiredModules.FlexLayout = true);
@@ -201,7 +190,9 @@ function getStatusBarProp(key, value) {
 
   switch (key) {
     case 'color':
-      res = `this.statusBar.android && (this.statusBar.android.color = ${createColorForDevice(value)});`;
+      res = `this.statusBar.android && (this.statusBar.android.color = ${createColorForDevice(
+        value
+      )});`;
       break;
     case 'style':
       res = `this.statusBar.ios && (this.statusBar.ios.style = StatusBarStyle.${value});`;
@@ -248,21 +239,23 @@ function getFontStyle(font) {
   if (font.italic) {
     res && (res += '_');
     res += FONT_STYLE.ITALIC;
-  } !res && (res = FONT_STYLE.DEFAULT);
+  }
+  !res && (res = FONT_STYLE.DEFAULT);
   return res;
 }
 
 const IRREGULAR_ENUMS = {
-  require: {
-    ScrollViewAlign: '@smartface/native/ui/scrollview/scrollview-align',
-    AttributedString: '@smartface/native/ui/attributedstring',
-    LayoutManager: '@smartface/native/ui/layoutmanager',
-    StaggeredFlowLayout: '@smartface/native/ui/collectionview/layout',
-    createAttributedStrings: '@smartface/html-to-text'
-  },
+  require: {},
   import: {
     propFactory: '@smartface/styling-context/lib/sfCorePropFactory',
-    actionAddChild: '@smartface/styling-context/lib/action/addChild'
+    actionAddChild: '@smartface/styling-context/lib/action/addChild',
+    ScrollViewAlign: {
+      path: '@smartface/native/ui/scrollview',
+      importDefault: false
+    },
+    AttributedString: '@smartface/native/ui/attributedstring',
+    LayoutManager: '@smartface/native/ui/layoutmanager',
+    createAttributedStrings: '@smartface/html-to-text'
   }
 };
 
@@ -278,21 +271,25 @@ function getRequiredIrregularEnums(smfObjects) {
   if (!smfObjects) return '';
 
   function searchAndSet(_smfObjects) {
-    _smfObjects.forEach((item) => {
+    _smfObjects.forEach(item => {
       item.attributes && item.attributes.align && (mdls.ScrollViewAlign = true);
       item.html && (mdls.propFactory = true);
       item.html && (mdls.AttributedString = true);
       item.html && (mdls.createAttributedStrings = true);
       item.type === 'GridView' && (mdls.LayoutManager = true);
       REPEATED_VIEW[item.type] && (mdls.actionAddChild = true);
-      item.smfObjects && (searchAndSet(item.smfObjects));
+      item.smfObjects && searchAndSet(item.smfObjects);
     });
   }
 
   searchAndSet(smfObjects);
 
   for (const mdl in mdls) {
-    res.push(`const ${mdl} = ${WITH_EXTEND[mdl] ? 'extend(' : ''}require("${IRREGULAR_ENUMS[mdl]}")${WITH_EXTEND[mdl] ? ')' : ''};`);
+    res.push(
+      `const ${mdl} = ${WITH_EXTEND[mdl] ? 'extend(' : ''}require("${IRREGULAR_ENUMS[mdl]}")${
+        WITH_EXTEND[mdl] ? ')' : ''
+      };`
+    );
   }
   return res.join('\n');
 }
@@ -313,7 +310,7 @@ function isEmpty(val, options) {
 
 function isValidObject(val, options) {
   const type = typeof val;
-  if (type === 'object' && ((val !== null) && Object.keys(val).length > 0)) {
+  if (type === 'object' && val !== null && Object.keys(val).length > 0) {
     return options.fn(this);
   }
   return options.inverse(this);
@@ -368,7 +365,7 @@ function needsWriteObjectData(footer, libraryType, isLibComp, options) {
 function getAdditionalData(obj) {
   let res = '';
   // console.log(obj.type);
-  if (obj.type === 'ListView' && !(obj.children && (obj.children.length !== 0))) {
+  if (obj.type === 'ListView' && !(obj.children && obj.children.length !== 0)) {
     res = `\n\t\t${obj.varName}.onRowCreate = function(){ return new ListViewItem(); };`;
   } else if (obj.type === 'Switch') {
     res = `\n\t\tif(${obj.varName}Style.toggleOffColor)\n\t\t\t${obj.varName}.android && (${obj.varName}.android.toggleOffColor = ${obj.varName}Style.toggleOffColor);`;
@@ -389,7 +386,8 @@ function getAdditionalData(obj) {
     res += `\n\t\tif(${obj.varName}Style.clearButtonEnabled)\n\t\t\t${obj.varName}.ios && (${obj.varName}.ios.clearButtonEnabled = ${obj.varName}Style.clearButtonEnabled);`;
     res += `\n\t\tif(${obj.varName}Style.minimumFontSize)\n\t\t\t${obj.varName}.ios && (${obj.varName}.ios.minimumFontSize = ${obj.varName}Style.minimumFontSize);`;
     res += `\n\t\tif(${obj.varName}Style.adjustFontSizeToFit)\n\t\t\t${obj.varName}.ios && (${obj.varName}.ios.adjustFontSizeToFit = ${obj.varName}Style.adjustFontSizeToFit);`;
-  } else if (obj.type === 'ScrollView') { }
+  } else if (obj.type === 'ScrollView') {
+  }
   return res;
 }
 
