@@ -7,8 +7,9 @@ export enum STATUS {
   'compiled' = 'compiled',
 }
 
-let statusJson: { status: STATUS } = {
+let statusJson: { status: STATUS, buildNumber: number } = {
   status: STATUS.init,
+  buildNumber: 0
 };
 let jsonFilePath;
 
@@ -28,5 +29,6 @@ export async function initStatusFile(_jsonFilepath: string) {
 
 export async function changeStatus(status: STATUS) {
   statusJson.status = status;
+  statusJson.buildNumber++;
   return writeJSON(statusJson);
 }
