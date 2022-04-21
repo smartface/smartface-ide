@@ -37,7 +37,7 @@ function readAndCheckComponentsTestID() {
                 const pgxPath = path.join(pgxFolder, item);
                 fs.readFile(pgxPath, "binary", (e, data) => {
                     const pgxSource =  JSON.parse(data);
-                    if(checkComponentsTestID(pgxSource))
+                    //if(checkComponentsTestID(pgxSource))
                         //writePgx(pgxPath, pgxSource);
                 });
             });
