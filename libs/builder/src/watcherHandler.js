@@ -151,7 +151,7 @@ function WatcherHandler(isStandalone) {
                 }
                 emitGeneratedEvent(transpiler.generate(parsedObjectData), resFilePath, true);
                 if (dirtyPage) {
-                    writePgx(filePath, pgx);
+                    //writePgx(filePath, pgx);
                 }
 
                 return resFilePath;
