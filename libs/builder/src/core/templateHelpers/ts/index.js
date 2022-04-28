@@ -30,10 +30,11 @@ function getRequiredIrregularEnums(smfObjects) {
       res.push(`import ${mdl} = require('${IRREGULAR_ENUMS.require[mdl]}')`);
     else if (IRREGULAR_ENUMS.import[mdl]) {
       const currentImport = IRREGULAR_ENUMS.import[mdl];
-      if (typeof currentImport === 'object' && !currentImport.defaultImport) {
+      if (typeof currentImport === 'object' && !currentImport.importDefault) {
         res.push(`import { ${mdl} } from '${currentImport.path}'`);
+      } else {
+        res.push(`import ${mdl} from '${currentImport}'`);
       }
-      res.push(`import ${mdl} from '${currentImport}'`);
     }
   }
   return res.join('\n');

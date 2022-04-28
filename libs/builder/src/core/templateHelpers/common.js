@@ -250,7 +250,7 @@ const IRREGULAR_ENUMS = {
     propFactory: '@smartface/styling-context/lib/sfCorePropFactory',
     actionAddChild: '@smartface/styling-context/lib/action/addChild',
     ScrollViewAlign: {
-      path: '@smartface/native/ui/scrollview',
+      path: '@smartface/native/ui/scrollview/scrollview',
       importDefault: false
     },
     AttributedString: '@smartface/native/ui/attributedstring',
