@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 
+import { fork } from 'child_process';
 import minimist = require('minimist');
-import TscWatchClient = require('tsc-watch/client');
-import { mkdirSync } from 'fs';
+import { manipulateColors } from './stdout-manipulator';
 
-import { initStatusFile, changeStatus, STATUS } from './status';
-import { join, dirname } from 'path';
-
-const watch = new TscWatchClient();
 
 const args = minimist(process.argv.slice(2));
 
@@ -26,33 +22,24 @@ if (args.help || args.h) {
     `);
   process.exit(1);
 }
-args.project = args.project || process.cwd();
-const statusFile = args.status || join(args.project, '.theia/compiler_status.json');
 
-try {
-  mkdirSync(dirname(statusFile), { recursive: true });
-  initStatusFile(statusFile);
-} catch (e) {
-  console.error(e);
-  process.exit(1);
-}
+const argv = process.argv.slice();
+argv.shift();
+const watch = fork( require.resolve('./tsc-client.js'), argv, {stdio: 'pipe'});
 
-watch.on('started', () => {
-  changeStatus(STATUS.compiling);
+watch.stdout.on('data', buff => {
+  process.stdout.write(manipulateColors(buff.toString()));
 });
 
-watch.on('first_success', () => {
-  changeStatus(STATUS.compiled);
+watch.stderr.on('data', buff => {
+  process.stderr.write(manipulateColors(buff.toString()));
 });
 
-watch.on('success', () => {
-  // Your code goes here...
-  changeStatus(STATUS.compiled);
+process.on('exit', code => {
+  watch.kill();
 });
 
-watch.on('compile_errors', () => {
-  // Your code goes here...
-  changeStatus(STATUS.error);
+watch.on('exit', code => {
+  console.log('Tsc child exit: ', code);
 });
 
-watch.start('--project', args.project);

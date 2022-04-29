@@ -1,6 +1,6 @@
 {
   "name": "@smartface/tsc-watch",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "Smartface TS Compiler - Watch",
   "main": "./lib/index.js",
   "publishConfig": {
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/smartface/smartface-ide",
   "dependencies": {
+    "chalk": "^4.1.2",
     "tsc-watch": "^4.6.0"
   },
   "devDependencies": {
