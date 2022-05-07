@@ -1,12 +1,12 @@
 {{> header}}
-import { styleablePageMixin } from '@smartface/styling-context/lib/styleablePageMixin';
-import { styleableComponentMixin, styleableContainerComponentMixin } from '@smartface/styling-context/lib/styleableComponentMixin';
+import { styleableComponentMixin, styleableContainerComponentMixin, styleablePageMixin } from '@smartface/styling-context';
 import Page from '@smartface/native/ui/page';
 import View from '@smartface/native/ui/view';
 import { ComponentStyleContext } from '@smartface/styling-context/lib/ComponentStyleContext';
 import System from '@smartface/native/device/system';
 import StatusBar from '@smartface/native/application/statusbar';
 import HeaderBar from '@smartface/native/ui/headerbar';
+import { StatusBarStyle } from "@smartface/native/application/statusbar/statusbar";
 
 {{require smfObjects footer ""}}
 {{getRequiredIrregularEnums smfObjects}}
