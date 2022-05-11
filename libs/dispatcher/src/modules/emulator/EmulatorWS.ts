@@ -15,6 +15,7 @@ import {
   DeviceInfoType,
   GetFilesCommandType,
   GetIndexCommandType,
+  UpdateCommandType,
 } from '../../core/CommandTypes';
 import { FileInfoType } from '../../core/WorkspaceIndexTypes';
 import { sendReadyConnectedDevices } from './emulator-manager';
@@ -103,6 +104,12 @@ export class EmulatorWS extends EventEmitter {
               deviceInfo: this.deviceInfo,
             },
           });
+        } else if(parsedMessage.command === 'getInfo'){
+          this.deviceInfo = (parsedMessage as GetIndexCommandType).data;
+          this.deviceInfo.isOverUSB = this.isOverUSB;
+          this.deviceInfo.brandModel = iOSMap[this.deviceInfo.brandModel] || this.deviceInfo.brandModel;
+          EmulatorWS.deviceInfos.set(this.deviceId, this.deviceInfo);
+          sendReadyConnectedDevices();
         } else if (parsedMessage.command === 'getIndex') {
           this.deviceInfo = (parsedMessage as GetIndexCommandType).data;
           this.deviceInfo.isOverUSB = this.isOverUSB;
@@ -141,12 +148,24 @@ export class EmulatorWS extends EventEmitter {
                     this.status = EmulatorStatus.ERROR;
                   } else {
                     this.sentCrcSum = this.readyCrcSum;
-                    this.status = EmulatorStatus.UPDATED;
+                    //this.status = EmulatorStatus.UPDATED;
                   }
                 });
               }
             }
           );
+        } else if (parsedMessage.command === 'onUpdateStarted') {
+          const data = (parsedMessage as UpdateCommandType).data;
+          if(data === 'no-update'){
+            this.status = EmulatorStatus.NOCHANGES;
+          }
+        } else if (parsedMessage.command === 'onUpdateFinished') {
+          if(this._status === EmulatorStatus.UPDATING){
+            this.status = EmulatorStatus.UPDATED;
+          }
+          if (this.udpatingTimeoutTimer) {
+            clearTimeout(this.udpatingTimeoutTimer);
+          }
         }
       });
     });
@@ -155,6 +174,7 @@ export class EmulatorWS extends EventEmitter {
       this.emit('close');
       EmulatorWS.clearDeviceWs(this.deviceId);
       this.serviceWsMap.delete(service);
+      this._status = EmulatorStatus.READY;
       sendReadyConnectedDevices();
     });
     if (this.deviceInfo) {

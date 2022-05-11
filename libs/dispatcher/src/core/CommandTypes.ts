@@ -71,8 +71,14 @@ export type CommandResponseType = {
   id: number;
 };
 
+export type UpdateCommandType = {
+  command: 'onUpdateStarted' | 'onUpdateFinished';
+  data: 'no-update' | 'default-update'
+}
+
 export type CommandType =
   | GetIndexCommandType
   | GetFilesCommandType
   | ConsoleCommandType
-  | EmulatorCommandType;
+  | EmulatorCommandType
+  | UpdateCommandType;
