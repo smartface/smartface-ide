@@ -7,6 +7,11 @@
         "borderColor": "borderColor",
         "borderWidth": "borderWidth",
         "cursorColor": "cursorColor",
+        "errorColor": "errorColor",
+        "lineColor": "lineColor",
+        "errorMessage": "errorMessage",
+        "selectedHintTextColor": "selectedHintTextColor",
+        "labelsFont": "labelsFont",
         "textColor": "textColor",
         "textAlignment": "textAlignment",
         "font": {
