@@ -31,7 +31,7 @@ interface ${{capitalizeFirstLetter libraryType}}Children {
 	defaultClassNames: {{json defaultClassNames}},
 	userProps: {{#isEmpty props}} {} {{else}}{{> eachHelper props=props}}{{/isEmpty}} };
     {{#isRepeatedView type}}
-        private itemIndex = 0;
+        protected itemIndex = 0;
 	{{/isRepeatedView}}
     {{#each componentsAssignedToRoot}}{{name}}: {{klass}};{{/each}}
     constructor(props?: any) {

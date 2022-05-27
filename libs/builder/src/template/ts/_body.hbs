@@ -17,7 +17,7 @@
     static $$styleContext: ComponentStyleContext = { classNames: {{json className}},  defaultClassNames: {{json defaultClassNames}}, userProps:
 	{{#isEmpty props}} {} {{else}}{{> eachHelper props=props}}{{/isEmpty}} };
 	{{#isRepeatedView type}}
-        private itemIndex = 0;
+        protected itemIndex = 0;
 	{{/isRepeatedView}}
     {{#isEqual type "ShimmerFlexLayout"}}
         layout: FlexLayout;
