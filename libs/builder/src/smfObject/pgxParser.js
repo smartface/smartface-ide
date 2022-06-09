@@ -22,6 +22,11 @@ const REPEATED_VIEW_ITEM_MAP = {
     "GridView": "GridViewItem"
 };
 
+const LIST_ITEM_COMPONENTS = {
+    "ListViewItem": "ListViewItem",
+    "GridViewItem": "GridViewItem"
+};
+
 const CONTAINER_COMPONENTS = {
     'FlexLayout': 'FlexLayout',
     'ScrollView': 'ScrollView',
@@ -83,6 +88,9 @@ function parsePgx(components) {
                 item.mtbTestId = item.testId;
             } else if (isLibraryPage) {
                 item.props.testId = item.testId;
+            }
+            if(!LIST_ITEM_COMPONENTS[component.type] && checkIsComponentNameUnique(componentById, component)){
+                item.usePageVariable = true;
             }
         }
         delete item.props.testId;
@@ -195,9 +203,6 @@ function parseComponent(obj, parentComponent) {
         else if (smfKey === "orientation") {
             parsedSmfObject.orientation = value;
         }
-        else if (smfKey === "usePageVariable") {
-            value && (parsedSmfObject.usePageVariable = value);
-        }
         else if (/userProps\.font|android|ios|layout\.*/.test(prop)) {
             tempName = prop.replace("userProps.", "");
             dotProp.set(parsedSmfObject.props, tempName, value);
@@ -225,7 +230,6 @@ function parseComponent(obj, parentComponent) {
     }
     parsedSmfObject.type = smfObject.type;
     parsedSmfObject.id = obj.id;
-    parsedSmfObject.usePageVariable = obj.props.usePageVariable;
     //parsedSmfObject.type !== "HeaderBar" && (parsedSmfObject.attributes.skipDefaults = true);
     if (type === "GridView") { // TODO itemLength from collectionViewItem
         parsedSmfObject.layoutManager = Object.assign(parsedSmfObject.props.layoutManager || {});
@@ -363,6 +367,10 @@ function prepareOneComponentRefForRoot(componentById, comp) {
     treeArr.shift(); // remove page Name
     treeArr.shift(); // remove root comp name
     return `this.children.${treeArr.join(".children.")}`;
+}
+
+function checkIsComponentNameUnique(componentById, comp) {
+    return !Object.keys(componentById).some(key => comp.id !== key && comp.props.name === componentById[key].props.name);
 }
 
 
