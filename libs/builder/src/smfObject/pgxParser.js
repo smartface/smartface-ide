@@ -89,7 +89,7 @@ function parsePgx(components) {
             } else if (isLibraryPage) {
                 item.props.testId = item.testId;
             }
-            if(!LIST_ITEM_COMPONENTS[component.type] && checkIsComponentNameUnique(componentById, component)){
+            if (!LIST_ITEM_COMPONENTS[component.type] && checkIsComponentNameUnique(componentById, component) && !checkParentIsRepeatedComp(componentById, component)) {
                 item.usePageVariable = true;
             }
         }
@@ -325,6 +325,17 @@ function checkPropIsValid(key, smfObject) {
     return res;
 }
 
+function checkParentIsRepeatedComp(componentById, comp) {
+    const parentComp = componentById[comp.props.parent];
+    if (parentComp) {
+        if (LIST_ITEM_COMPONENTS[parentComp.type])
+            return parentComp;
+        else
+            return checkParentIsRepeatedComp(componentById, parentComp);
+    }
+    return false;
+}
+
 function checkParentIsLibraryComp(comp, comps) {
     var parentComp = comps[comp.parentID];
     if (parentComp) {
@@ -370,18 +381,18 @@ function prepareOneComponentRefForRoot(componentById, comp) {
 }
 
 
-function getAllComponentsInRoot(smfObjectRoot){
+function getAllComponentsInRoot(smfObjectRoot) {
     let res = [smfObjectRoot]
     if (smfObjectRoot.smfObjects) {
-        smfObjectRoot.smfObjects.forEach( subSmfObject => {
+        smfObjectRoot.smfObjects.forEach(subSmfObject => {
             res = res.concat(getAllComponentsInRoot(subSmfObject));
         });
     }
-    return res;        
+    return res;
 }
 
 function checkIsComponentNameUniqueInLibraryComponent(componentID, comp, smfObjectRoot) {
-    return !getAllComponentsInRoot(smfObjectRoot).some( smfObject => smfObject.id !== comp.id && comp.props.name === smfObject.name )
+    return !getAllComponentsInRoot(smfObjectRoot).some(smfObject => smfObject.id !== comp.id && comp.props.name === smfObject.name)
 }
 
 function checkIsComponentNameUnique(componentById, comp) {
