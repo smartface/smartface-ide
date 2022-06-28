@@ -25,6 +25,7 @@ const attributes = [
   "multiline",
   "orientation",
   "itemCount",
+  "itemLength",
   "rowHeight",
   "safeAreaEnabled",
   "autoWidth",

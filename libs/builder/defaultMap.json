@@ -138,6 +138,7 @@
         "insertAnimationType": "insertAnimationType",
         "isPassword": "isPassword",
         "itemCount": "itemCount",
+        "itemLength": "itemLength",
         "keyboardAppearance": "keyboardAppearance",
         "keyboardType": "keyboardType",
         "layout": {

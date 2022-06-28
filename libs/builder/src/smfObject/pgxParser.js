@@ -69,7 +69,7 @@ function parsePgx(components) {
         }
         var item = parseComponent(component, componentById[component.props.parent]);
         var treeArr = getFamilyTree(componentById, component);
-        component.type === "GridView" && (item.layoutManager.onItemLength = `() => ${getAppropriateItemLength(component, componentById)}`);
+        component.type === "GridView" && (item.layoutManager.onItemLength = `() => ${ component.userProps.itemLength || getAppropriateItemLength(component, componentById)}`);
         item.bundleID = "#" + treeArr.reverse().join("_");
 
         if (component.type === "Page") {
@@ -425,13 +425,13 @@ function handleInvalidLibraryComponents(components) {
 }
 
 function getAppropriateItemLength(gridViewComp, componentById) {
-    var res = 200;
+    var res =  gridViewComp.userProps.itemLength;
     if (gridViewComp.props.children && gridViewComp.props.children[0]) {
         var itemComp = componentById[gridViewComp.props.children[0]];
         if (gridViewComp.userProps.layout && gridViewComp.userProps.layout.scrollDirection === "HORIZONTAL")
             itemComp.userProps.width && (res = itemComp.userProps.width);
         else
-            itemComp.userProps.height && (res = itemComp.userProps.height);
+            itemComp.userProps.height && (res = gridViewComp.userProps.itemLength || itemComp.userProps.height);
     }
     return res;
 }
