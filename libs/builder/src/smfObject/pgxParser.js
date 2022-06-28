@@ -22,6 +22,11 @@ const REPEATED_VIEW_ITEM_MAP = {
     "GridView": "GridViewItem"
 };
 
+const LIST_ITEM_COMPONENTS = {
+    "ListViewItem": "ListViewItem",
+    "GridViewItem": "GridViewItem"
+};
+
 const CONTAINER_COMPONENTS = {
     'FlexLayout': 'FlexLayout',
     'ScrollView': 'ScrollView',
@@ -83,6 +88,9 @@ function parsePgx(components) {
                 item.mtbTestId = item.testId;
             } else if (isLibraryPage) {
                 item.props.testId = item.testId;
+            }
+            if (!LIST_ITEM_COMPONENTS[component.type] && checkIsComponentNameUnique(componentById, component) && !checkParentIsRepeatedComp(componentById, component)) {
+                item.usePageVariable = true;
             }
         }
         delete item.props.testId;
@@ -195,9 +203,6 @@ function parseComponent(obj, parentComponent) {
         else if (smfKey === "orientation") {
             parsedSmfObject.orientation = value;
         }
-        else if (smfKey === "usePageVariable") {
-            value && (parsedSmfObject.usePageVariable = value);
-        }
         else if (/userProps\.font|android|ios|layout\.*/.test(prop)) {
             tempName = prop.replace("userProps.", "");
             dotProp.set(parsedSmfObject.props, tempName, value);
@@ -225,7 +230,6 @@ function parseComponent(obj, parentComponent) {
     }
     parsedSmfObject.type = smfObject.type;
     parsedSmfObject.id = obj.id;
-    parsedSmfObject.usePageVariable = obj.props.usePageVariable;
     //parsedSmfObject.type !== "HeaderBar" && (parsedSmfObject.attributes.skipDefaults = true);
     if (type === "GridView") { // TODO itemLength from collectionViewItem
         parsedSmfObject.layoutManager = Object.assign(parsedSmfObject.props.layoutManager || {});
@@ -321,6 +325,17 @@ function checkPropIsValid(key, smfObject) {
     return res;
 }
 
+function checkParentIsRepeatedComp(componentById, comp) {
+    const parentComp = componentById[comp.props.parent];
+    if (parentComp) {
+        if (LIST_ITEM_COMPONENTS[parentComp.type])
+            return parentComp;
+        else
+            return checkParentIsRepeatedComp(componentById, parentComp);
+    }
+    return false;
+}
+
 function checkParentIsLibraryComp(comp, comps) {
     var parentComp = comps[comp.parentID];
     if (parentComp) {
@@ -366,6 +381,25 @@ function prepareOneComponentRefForRoot(componentById, comp) {
 }
 
 
+function getAllComponentsInRoot(smfObjectRoot) {
+    let res = [smfObjectRoot]
+    if (smfObjectRoot.smfObjects) {
+        smfObjectRoot.smfObjects.forEach(subSmfObject => {
+            res = res.concat(getAllComponentsInRoot(subSmfObject));
+        });
+    }
+    return res;
+}
+
+function checkIsComponentNameUniqueInLibraryComponent(componentID, comp, smfObjectRoot) {
+    return !getAllComponentsInRoot(smfObjectRoot).some(smfObject => smfObject.id !== comp.id && comp.props.name === smfObject.name)
+}
+
+function checkIsComponentNameUnique(componentById, comp) {
+    return !Object.keys(componentById).some(key => comp.id !== key && comp.props.name === componentById[key].props.name);
+}
+
+
 
 function prepareComponentsAssignedToPage(smfObjects, componentById) {
     let childrenRefs = [];
@@ -380,15 +414,15 @@ function prepareComponentsAssignedToPage(smfObjects, componentById) {
     return childrenRefs;
 }
 
-function getComponentsAssignedToRoot(smfObjects, componentById) {
+function getComponentsAssignedToRoot(smfObjects, componentById, smfObjectRoot) {
     let childrenRefs = [];
     smfObjects.forEach((subSmfObject) => {
         const comp = componentById[subSmfObject.id];
         const klass = createChildClassFromFamilyTree(componentById, comp);
-        if (comp.props.usePageVariable)
+        if (checkIsComponentNameUniqueInLibraryComponent(componentById, comp, smfObjectRoot))
             childrenRefs.push({ klass, type: subSmfObject.libraryType || subSmfObject.type, ref: prepareOneComponentRefForRoot(componentById, comp), name: comp.props.name });
         if (subSmfObject.smfObjects) {
-            childrenRefs = childrenRefs.concat(getComponentsAssignedToRoot(subSmfObject.smfObjects, componentById));
+            childrenRefs = childrenRefs.concat(getComponentsAssignedToRoot(subSmfObject.smfObjects, componentById, smfObjectRoot));
         }
     });
     return childrenRefs;
@@ -405,7 +439,7 @@ function createChildClassFromFamilyTree(componentById, comp) {
 function prepareAndSetComponentsAssignedToRoot(smfObjects, componentById) {
     smfObjects.forEach((smfObject) => {
         if (smfObject.smfObjects) {
-            smfObject.componentsAssignedToRoot = getComponentsAssignedToRoot(smfObject.smfObjects, componentById);
+            smfObject.componentsAssignedToRoot = getComponentsAssignedToRoot(smfObject.smfObjects, componentById, smfObject);
         }
     });
 }
