@@ -41,7 +41,9 @@ const attributes = [
   'maxLines',
   'maxLength',
   'showScrollBar',
-  'centerLocation'
+  "centerLocation",
+  "centerLocation.longitude",
+  "centerLocation.latitude",
 ];
 
 var undefinedObject = {};
