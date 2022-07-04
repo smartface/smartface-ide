@@ -33,7 +33,15 @@ const attributes = [
   "letterSpacing",
   "autoSizeEnabled",
   "borderVisibility",
-  "backgroundModeEnabled"
+  "backgroundModeEnabled",
+  'isDragged',
+  'layoutManager',
+  'layoutManager.spanCount',
+  'layoutManager.scrollDirection',
+  'maxLines',
+  'maxLength',
+  'showScrollBar',
+  'centerLocation'
 ];
 
 var undefinedObject = {};
