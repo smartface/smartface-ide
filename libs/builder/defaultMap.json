@@ -84,9 +84,10 @@
         "baseAlpha": "baseAlpha",
         "centerLatitude": "centerLatitude",
         "centerLongitude": "centerLongitude",
-        "centerLocation": "centerLocation",
-        "centerLocation.longitude": "centerLocation.longitude",
-        "centerLocation.latitude": "centerLocation.latitude",
+        "centerLocation": {
+            "longitude": "longitude",
+            "latitude": "latitude"
+        },
         "changeAnimation": "changeAnimation",
         "checked": "checked",
         "contentHeight": "contentHeight",
