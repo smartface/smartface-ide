@@ -44,6 +44,7 @@ const attributes = [
   "centerLocation",
   "centerLocation.longitude",
   "centerLocation.latitude",
+  "refreshEnabled"
 ];
 
 var undefinedObject = {};
