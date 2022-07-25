@@ -74,9 +74,9 @@ function parsePgx(components) {
         }
         var item = parseComponent(component, componentById[component.props.parent]);
         var treeArr = getFamilyTree(componentById, component);
-        component.type === "GridView" && (item.layoutManager.onItemLength = `() => ${ component.userProps.itemLength || getAppropriateItemLength(component, componentById)}`);
+        component.type === "GridView" && (item.layoutManager.onItemLength = `() => ${component.userProps.itemLength || getAppropriateItemLength(component, componentById)}`);
         item.bundleID = "#" + treeArr.reverse().join("_");
-
+        item.usePageVariable = false;
         if (component.type === "Page") {
             item.testId = "_" + treeArr.map(name => util.capitalizeFirstLetter(name)).join("_");
         } else if (component.type !== "Page" && component.type !== "StatusBar" && component.type !== "HeaderBar") {
@@ -89,7 +89,9 @@ function parsePgx(components) {
             } else if (isLibraryPage) {
                 item.props.testId = item.testId;
             }
-            if (!LIST_ITEM_COMPONENTS[component.type] && checkIsComponentNameUnique(componentById, component) && !checkParentIsRepeatedComp(componentById, component)) {
+            const isNameUnique = (isLibraryPage ? checkIsComponentNameUniqueInLibraryComponent(componentById, component) : checkIsComponentNameUnique(componentById, component))
+            if (!LIST_ITEM_COMPONENTS[component.type] &&
+                isNameUnique && !checkParentIsRepeatedCompAndNonRoot(componentById, component)) {
                 item.usePageVariable = true;
             }
         }
@@ -325,13 +327,14 @@ function checkPropIsValid(key, smfObject) {
     return res;
 }
 
-function checkParentIsRepeatedComp(componentById, comp) {
+function checkParentIsRepeatedCompAndNonRoot(componentById, comp) {
     const parentComp = componentById[comp.props.parent];
     if (parentComp) {
-        if (LIST_ITEM_COMPONENTS[parentComp.type])
+        const oldParentComp = componentById[parentComp.props.parent];
+        if (LIST_ITEM_COMPONENTS[parentComp.type] && (oldParentComp && oldParentComp.props.name !== LIBRARY_PAGE_NAME))
             return parentComp;
         else
-            return checkParentIsRepeatedComp(componentById, parentComp);
+            return checkParentIsRepeatedCompAndNonRoot(componentById, parentComp);
     }
     return false;
 }
@@ -381,18 +384,30 @@ function prepareOneComponentRefForRoot(componentById, comp) {
 }
 
 
-function getAllComponentsInRoot(smfObjectRoot) {
-    let res = [smfObjectRoot]
-    if (smfObjectRoot.smfObjects) {
-        smfObjectRoot.smfObjects.forEach(subSmfObject => {
-            res = res.concat(getAllComponentsInRoot(subSmfObject));
+function getAllComponentsInRoot(componentById, parent) {
+    let res = [parent]
+    if (parent.props.children && parent.props.children.length) {
+        parent.props.children.forEach(childId => {
+            res = res.concat(getAllComponentsInRoot(componentById, componentById[childId]));
         });
     }
     return res;
 }
 
-function checkIsComponentNameUniqueInLibraryComponent(componentID, comp, smfObjectRoot) {
-    return !getAllComponentsInRoot(smfObjectRoot).some(smfObject => smfObject.id !== comp.id && comp.props.name === smfObject.name)
+function getLibraryRootComp(componentID, id) {
+    const parent = componentID[id];
+    if (parent && parent.props.parent) {
+        if (componentID[parent.props.parent] && componentID[parent.props.parent].props.name === LIBRARY_PAGE_NAME) {
+            return parent;
+        }
+        return getLibraryRootComp(componentID, parent.props.parent)
+    }
+    return null;
+}
+
+function checkIsComponentNameUniqueInLibraryComponent(componentID, comp) {
+    const parent = getLibraryRootComp(componentID, comp.props.parent);
+    return parent && !getAllComponentsInRoot(componentID, parent).some(c => comp.id !== c.id && c.props.name === comp.props.name)
 }
 
 function checkIsComponentNameUnique(componentById, comp) {
@@ -419,7 +434,8 @@ function getComponentsAssignedToRoot(smfObjects, componentById, smfObjectRoot) {
     smfObjects.forEach((subSmfObject) => {
         const comp = componentById[subSmfObject.id];
         const klass = createChildClassFromFamilyTree(componentById, comp);
-        if (checkIsComponentNameUniqueInLibraryComponent(componentById, comp, smfObjectRoot))
+        //console.log('A: ', subSmfObject.name, ' - ', subSmfObject.usePageVariable);
+        if (subSmfObject.usePageVariable && checkIsComponentNameUniqueInLibraryComponent(componentById, comp, smfObjectRoot))
             childrenRefs.push({ klass, type: subSmfObject.libraryType || subSmfObject.type, ref: prepareOneComponentRefForRoot(componentById, comp), name: comp.props.name });
         if (subSmfObject.smfObjects) {
             childrenRefs = childrenRefs.concat(getComponentsAssignedToRoot(subSmfObject.smfObjects, componentById, smfObjectRoot));
@@ -459,7 +475,7 @@ function handleInvalidLibraryComponents(components) {
 }
 
 function getAppropriateItemLength(gridViewComp, componentById) {
-    var res =  gridViewComp.userProps.itemLength;
+    var res = gridViewComp.userProps.itemLength;
     if (gridViewComp.props.children && gridViewComp.props.children[0]) {
         var itemComp = componentById[gridViewComp.props.children[0]];
         if (gridViewComp.userProps.layout && gridViewComp.userProps.layout.scrollDirection === "HORIZONTAL")
