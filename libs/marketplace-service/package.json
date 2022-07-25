@@ -24,5 +24,6 @@
     "moment": "^2.22.2",
     "node-ipc": "^9.1.1",
     "recursive-readdir": "^2.2.2"
-  }
+  },
+  "gitHead": "000cdecd9bb1c4dc5bdf3d4214034187b11c5bdf"
 }

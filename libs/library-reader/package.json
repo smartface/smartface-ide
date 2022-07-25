@@ -28,5 +28,6 @@
   "bugs": {
     "url": "https://github.com/smartface/smartface-native/issues"
   },
-  "homepage": "https://github.com/smartface/smartface-native#readme"
+  "homepage": "https://github.com/smartface/smartface-native#readme",
+  "gitHead": "000cdecd9bb1c4dc5bdf3d4214034187b11c5bdf"
 }
