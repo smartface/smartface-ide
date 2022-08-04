@@ -23,20 +23,17 @@
     "@smartface/xmlmergejs": "^1.0.0",
     "async": "^2.5.0",
     "bytes": "^2.5.0",
-    "chokidar": "^3.3.0",
     "dot-object": "^1.5.4",
     "dot-prop": "^4.1.0",
-    "express": "^4.14.0",
     "fs-extra": "^9.0.1",
     "handlebars": "^4.0.6",
     "html-parse-stringify": "^1.0.2",
     "jsonlint": "^1.6.3",
     "minimist": "^1.2.5",
+    "nsfw": "^2.2.2",
     "prettier": "^1.15.3",
     "recursive-readdir": "^2.2.1",
-    "rmdir": "^1.2.0",
-    "shortid": "^2.2.16",
-    "text": "^0.1.0"
+    "rmdir": "^1.2.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",

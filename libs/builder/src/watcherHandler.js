@@ -15,7 +15,6 @@ const Transpiler = require("./core/transpiler");
 const styleGeneration = require("./core/generateStyles");
 const TranspileLibrary = require("./transpileLibrary");
 const modulesComps = require("./smfObject/modulesComps");
-const { checkComponentsTestID, writePgx } = require('./testid-checker');
 const { writeIdXml } = require('./prepare-id-xml');
 
 const BRACKET_END = "$(B_R-A_C-K_E-T)";
@@ -135,7 +134,6 @@ function WatcherHandler(isStandalone) {
                 }
             }
             else {
-                const dirtyPage = checkComponentsTestID(pgx);
                 const parsedObjectData = transpiler.parse(pgx.components);
                 //classGeneration !== false && styleGeneration.generateClassesMapAllFiles(path.dirname(filePath));
                 const resFilePath = prepareOutputFilePath(projectType, uiFolder, path.basename(filePath, ".pgx"));
@@ -150,9 +148,7 @@ function WatcherHandler(isStandalone) {
                     await movePageUserFile(parsedObjectData.name, parsedObjectData.oldName, pgx, filePath);
                 }
                 emitGeneratedEvent(transpiler.generate(parsedObjectData), resFilePath, true);
-                if (dirtyPage) {
-                    //writePgx(filePath, pgx);
-                }
+              
 
                 return resFilePath;
             }

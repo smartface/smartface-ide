@@ -1,11 +1,13 @@
-const chokidar = require('chokidar');
+const path = require('path');
 
+const nsfw = require('nsfw');
+
+const EVENT_TYPE = require('./src/core/event-type');
 const run = require('./src/run');
 const util = require('./src/util');
 
 const { isExistsFileDir } = util;
 const config = require('./src/config');
-const { readAndCheckComponentsTestID } = require('./src/testid-checker');
 
 if (!String.prototype.replaceAll) {
   String.prototype.replaceAll = function (str, newStr) {
@@ -23,16 +25,16 @@ module.exports = function (args) {
   const isStandalone = args.standalone;
 
   function checkStart(runImmediate) {
-    console.log('checkstart starting...');
+    console.log('├─ ℹ️ Checking workspace...');
 
     function doCheck() {
       isExistsFileDir(args.configFile).then((res) => {
         if (res.existing && res.file) {
-          console.log('checkstart if in');
-          // readAndCheckComponentsTestID();
           watchAll();
           clearInterval(interval);
-        } else console.log('Settings file cannot be found');
+        } else {
+          console.log('├─ ⚠️ Settings file cannot be found');
+        }
       });
     }
 
@@ -42,32 +44,58 @@ module.exports = function (args) {
 
   function watchAll() {
     let configCounter = 0;
-    const configWatcher = chokidar.watch(args.configFile);
     let watcher = null;
-    configWatcher.on('all', (event, file) => {
-      console.log('Config Watcher Event: ', event, args.configFile);
+    const configWatcheHandler = (event) => {
+      const filename = path.join(event.directory || event.newDirectory, event.file || event.newFile);
+      console.log('├─ ⏰ ⚙️ »', EVENT_TYPE[event.action], '« ', filename);      
       if (event === 'unlink') {
         watcher && watcher.stop({ silent: true });
-        configWatcher.close();
-        console.log('Config file has been deleted! call checkStart method');
+        configWatcher.stop();
+        console.log('├─ ⚙️ Config file has been deleted! call checkStart method 🫥');
         return checkStart();
       }
       ++configCounter;
       setTimeout((_) => {
         --configCounter;
-        if (configCounter === 0 && (!config.initPathsFromConfigFile(args.configFile) || event === 'add')) {
+        if (configCounter === 0 && (!config.initPathsFromConfigFile(args.configFile) || event.action === nsfw.actions.CREATED || event.action === 4)) {
           config.writeInfo();
           watcher && watcher.stop({ silent: true });
           watcher = run((_) => {
-            console.log('Watcher stopped ! Retrying... in 5 secs.');
+            console.log('├─ 🛑 ⏰ Watcher has been stopped! Retrying... in 5 secs.');
             watcher = null;
-            configWatcher.close();
+            configWatcher.stop();
             checkStart();
           }, isStandalone);
         }
       }, 1000);
-    });
-    configWatcher.on('error', (e) => util.writeError(e, 'Config Watcher Error'));
+    };
+
+    nsfw(args.configFile,
+      (events) => {
+        let cachedEvents = {}; 
+          events
+          .filter( e => {
+            let label = e.action + e.directory + e.file;
+            if(cachedEvents[label]){
+              return false;
+            }
+            cachedEvents[label] = 1;
+            return true;
+          })
+          .forEach(e => configWatcheHandler(e));
+      }, {
+      errorCallback(errors) {
+          util.writeError(errors, "Watcher Config Error");
+          stop();
+      }
+  })
+      .then((watcher) => {
+        configWatcher = watcher;
+          return watcher.start();
+      })
+      .then(() => {
+        configWatcheHandler({ action: 4, directory: path.dirname(args.configFile), file: path.basename(args.configFile) });
+      });
   }
 
   checkStart(true);

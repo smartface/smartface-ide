@@ -70,7 +70,7 @@ function initPathsFromConfigFile(configFilePath) {
     return exp;
   }
   if (SETTINGS_STRING === settings_string) {
-    console.log('Config File did not change');
+    console.log('├─ ⚙️ Config File did not change');
     return 'same config file';
   }
   SETTINGS_STRING = settings_string;
@@ -122,7 +122,7 @@ function getPath(key) {
 function writeInfo() {
   console.log('├─ ⚙️  ────────────────────────── Configuration ───────────────────────────────────┤');
   for (const key in UPDATED_PATHS) {
-    console.log(`├─ ⚫  ${key} ${' '.repeat(20 - key.length)} ${UPDATED_PATHS[key]}`);
+    console.log(`├─ 🔑 ${key} ${' '.repeat(20 - key.length)} ${UPDATED_PATHS[key]}`);
   }
   console.log('├─');
 }
