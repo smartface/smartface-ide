@@ -2,7 +2,6 @@ const fs = require('fs-extra');
 const path = require("path");
 const EventEmitter = require('events');
 const utils = require('util');
-const spawn = require("child_process").spawn;
 
 const DEFAULT_PATHS = require("./config").DEFAULT_PATHS;
 const getPath = require("./config").getPath;
@@ -17,7 +16,6 @@ const TranspileLibrary = require("./transpileLibrary");
 const modulesComps = require("./smfObject/modulesComps");
 const { writeIdXml } = require('./prepare-id-xml');
 
-const BRACKET_END = "$(B_R-A_C-K_E-T)";
 const importExportRegex = /import|export/;
 
 const isExistsFileDir = util.isExistsFileDir,
@@ -37,22 +35,34 @@ function prepareOutputFilePath(projectType, uiFolder, fileName) {
     return res;
 }
 
-function createCommonFiles(projectType, uiFolder) {
-    if (projectType === PROJECT_TYPES.ts) {
-        const coreLibPath = getPath('CORE_LIB_FOLDER');
-        util
-            .isExistsFileDir(coreLibPath)
-            .then(res => {
-                if (!res.existing || (res.existing && res.dir)) {
-                    util.mkdirpSync(path.dirname(coreLibPath));
-                    fs.copy(path.join(__dirname, '..', 'assets', 'ts', 'core'), coreLibPath, (err) => {
-                        if (err) return util.writeError(err, "Generate Common Files");
-                    });
-                }
-            }, writeError);
-    } else {
 
-    }
+function createCommonFiles(projectType, uiFolder) {
+    return new Promise((resolve, reject) => {
+        if (projectType === PROJECT_TYPES.ts) {
+            const coreLibPath = getPath('CORE_LIB_FOLDER');
+            util
+                .isExistsFileDir(coreLibPath)
+                .then(res => {
+                    if (!res.existing || (res.existing && res.dir)) {
+                        util.mkdirpSync(path.dirname(coreLibPath));
+                        fs.copy(path.join(__dirname, '..', 'assets', 'ts', 'core'), coreLibPath, (err) => {
+                            if (err){
+                                reject(err);
+                                return util.writeError(err, "Generate Common Files");
+                            } 
+                            resolve('done1');
+                        });
+                    }else{
+                        resolve('done2');
+                    }
+                }, err => {
+                    writeError(err);
+                    reject(err);
+                });
+        } else {
+            resolve('done3');
+        }
+    });
 }
 
 function WatcherHandler(isStandalone) {
@@ -100,6 +110,7 @@ function WatcherHandler(isStandalone) {
             }
             Promise.all(promiseArr).then(async res => {
                 if (isStandalone) {
+                    await createCommonFiles(projectType, uiFolder);
                     await writeIdXml();
                     process.exit(0);
                 }
@@ -171,8 +182,10 @@ function WatcherHandler(isStandalone) {
     this.transpileAllPgxFiles = transpileAllPgxFiles.bind(this);
     this.transpileLibraryPgx = transpileLibraryPgx.bind(this);
     this.init = () => {
-        libraryTranspiler.init().then(res => res);
-        createCommonFiles(projectType, uiFolder);
+        if(!isStandalone){
+            createCommonFiles(projectType, uiFolder)
+        } 
+        return libraryTranspiler.init().then(res => res);
     };
 
     function _emitGeneratedEvent(content, filePath, changed) {
