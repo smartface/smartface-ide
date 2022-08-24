@@ -23,6 +23,9 @@ export default function createImageApi(app: Express, options: any = {}) {
   const tempPath = ConfigurationService.instance.getTempPath();
   const logger = LogToConsole.instance;
   logger.log('image serving ready...');
+  const workspace = new Workspace({
+    path: wsPath,
+  });
   app.get(
     ConfigurationService.baseImageServePath + '/:imageName',
     async (req: Request, res: Response, next: NextFunction) => {
@@ -50,9 +53,7 @@ export default function createImageApi(app: Express, options: any = {}) {
       }
 
       var zoomLevel = Number(req.query.zoomLevel) || 1;
-      var workspace = new Workspace({
-        path: wsPath,
-      });
+      
       var imageName = req.params.imageName;
       var imageFormat = getImageFormat(imageName);
       console.info('IMAGE_FORMAT:> ', imageFormat, ' -- ', imageName);

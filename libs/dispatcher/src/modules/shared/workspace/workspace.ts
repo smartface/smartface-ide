@@ -19,6 +19,8 @@ const path = require('path');
 const uuid = require('node-uuid');
 const CRC32 = require('crc-32');
 const walk = require('walk');
+const nsfw = require('nsfw');
+
 const reAsset = new RegExp(
   'Assets\\' + path.sep + '\\w+\\.(?:imageset|appiconset|launchimage)\\' + path.sep
 );
@@ -31,13 +33,14 @@ const defaultIndexOptions = {
   calculateCRC: true,
   addDate: true,
   fileKeyType: 'uri',
-  addScaleFactor: false,
+  addScaleFactor: false
 };
 import Device from './device';
 import getScaleFactor from './androidresourcescalefactor';
 import join from '../util/join';
 import { getProjectJSON } from '../projectJSONCombiner';
 import { WorkspaceIndexType } from '../../../core/WorkspaceIndexTypes';
+import { writeError } from '../util/write-error';
 
 var _contentsJSONCache = {};
 
@@ -122,7 +125,7 @@ function handleImages_iOS(device, me, index, done, options) {
     Object.defineProperty(newFiles, '__ofBaseFolder', {
       enumerable: false,
       configurable: true,
-      value: files.__ofBaseFolder,
+      value: files.__ofBaseFolder
     });
 
     processFolder(
@@ -132,7 +135,7 @@ function handleImages_iOS(device, me, index, done, options) {
       done,
       Object.assign(
         {
-          os: 'iOS',
+          os: 'iOS'
         },
         defaultIndexOptions,
         options
@@ -159,14 +162,14 @@ function getiOSImageInfo(name) {
         var ret = {
           multiplier: multiplier,
           name: assetName,
-          assetName: assetName,
+          assetName: assetName
         };
         return ret;
       }
     }
     return {
       name: '',
-      multiplier: Number.MIN_VALUE,
+      multiplier: Number.MIN_VALUE
     };
   } else {
     //is not an asset image
@@ -176,13 +179,13 @@ function getiOSImageInfo(name) {
       case 1:
         return {
           name: imgName + fileInfo.ext,
-          multiplier: 1,
+          multiplier: 1
         };
       case 2:
       case 3:
         return {
           name: imgName.substr(0, imgName.length - 3) + fileInfo.ext,
-          multiplier: multiplier,
+          multiplier: multiplier
         };
       default:
         throw Error('unhandeled image naming for iOS');
@@ -232,7 +235,7 @@ function handleImages_Android(device, me, index, done, options) {
     Object.defineProperty(newFiles, '__ofBaseFolder', {
       enumerable: false,
       configurable: true,
-      value: files.__ofBaseFolder,
+      value: files.__ofBaseFolder
     });
 
     processFolder(
@@ -242,7 +245,7 @@ function handleImages_Android(device, me, index, done, options) {
       done,
       Object.assign(
         {
-          os: 'Android',
+          os: 'Android'
         },
         defaultIndexOptions,
         options
@@ -259,7 +262,7 @@ function getAndroidImageInfo(fullPath, device) {
     name: fileInfo.name,
     density: density,
     fullPath: fullPath,
-    priority: priority === -1 ? Number.MAX_VALUE : priority,
+    priority: priority === -1 ? Number.MAX_VALUE : priority
   };
 }
 
@@ -277,15 +280,16 @@ function sort(obj) {
 }
 
 function walkFolder(folder, callback) {
+  console.time('⏳ walk ' + folder);
   var files = {};
   Object.defineProperty(files, '__ofBaseFolder', {
     enumerable: false,
     configurable: true,
-    value: folder,
+    value: folder
   });
 
   var walker = walk.walk(folder, {
-    followLinks: true,
+    followLinks: true
   });
   walker.name = folder;
   walker.on('file', fileHandler);
@@ -300,6 +304,7 @@ function walkFolder(folder, callback) {
   }
 
   function endHandler() {
+    console.timeEnd('⏳ walk ' + folder);
     callback(files);
   }
 }
@@ -463,6 +468,15 @@ export default class Workspace {
 
   private project: any = {};
 
+  private index: any;
+
+  private device: Device;
+
+  private watcherEnabled: boolean;
+  private watchers: any = {};
+  private jsRegExp = /\.js$|\.json$|\.jsx$/;
+  private tsDistPath: string;
+
   constructor(options) {
     this.path = options.path || '/home/ubuntu/workspace/';
     this.projectJSONPath = join(
@@ -477,21 +491,25 @@ export default class Workspace {
     this.fontPath = join(this.path, join('config', 'Fonts'));
     this.projectID = options.projectID;
     this.hashBinaries = options.hashBinaries;
+    this.device = options.device instanceof Device ? options.device : new Device(options.device);
   }
 
   /**
    * Calculates index from workspace
    * @param {Device} device - Required. Device information to get correct image resources
    */
-  async getIndex(device: Device): Promise<WorkspaceIndexType> {
-    if (!(device instanceof Device)) device = new Device(device);
+  async getIndex(): Promise<WorkspaceIndexType> {
+    if (this.watcherEnabled) {
+      return sort({ ...this.index, files: { ...this.index.files } });
+    }
     this.settings = {};
     this.imagesPath;
     const jsonObj = await getProjectJSON(path.dirname(this.projectJSONPath));
     let index = Object.assign({}, jsonObj, {
       files: {},
-      projectID: '',
+      projectID: ''
     }) as WorkspaceIndexType;
+    this.index = index;
     this.settingsPath;
     let taskCount = 3;
 
@@ -501,10 +519,10 @@ export default class Workspace {
         var playerPath;
         var playerName;
         var fileHashes = {};
-        if (device.os === 'iOS') {
+        if (this.device.os === 'iOS') {
           playerName = 'iOS_Player.zip';
         } else {
-          if (device.cpu === 'x86') {
+          if (this.device.cpu === 'x86') {
             playerName = 'SmartfacePlayer-x86.zip';
           } else {
             playerName = 'SmartfacePlayer.zip';
@@ -513,7 +531,7 @@ export default class Workspace {
         playerPath = join(playerFolder, playerName);
         fileHashes[playerPath] = true;
         if (index && index.build && index.build.input) {
-          var osKey = device.os.toLocaleLowerCase();
+          var osKey = this.device.os.toLocaleLowerCase();
           var pluginConfigSection = index.build.input[osKey] && index.build.input[osKey].plugins;
           if (pluginConfigSection) {
             for (var i in pluginConfigSection) {
@@ -533,9 +551,9 @@ export default class Workspace {
           index.config.rau = index.config.rau || {};
           index.config.rau.binary = {
             players: {},
-            plugins: {},
+            plugins: {}
           };
-          var plugins = (index.config.rau.binary.plugins[device.os] = {});
+          var plugins = (index.config.rau.binary.plugins[this.device.os] = {});
           var playerHash = fileHashes[playerPath];
           var pluginList = Object.keys(fileHashes);
           var idx = pluginList.indexOf(playerPath);
@@ -566,9 +584,9 @@ export default class Workspace {
         taskCount--;
         if (taskCount !== 0) return;
         index = sort(index);
+        this.startWatcher();
         resolve(index);
       };
-
       index.projectID = this.getProjectID(true);
       index.files = {};
       _contentsJSONCache = {};
@@ -590,7 +608,6 @@ export default class Workspace {
         processFolder(index, files, 'asset', done, null);
       });
 
-      let jsRegExp = /\.js$|\.json$|\.jsx$/;
       if (
         this.settings &&
         this.settings.config &&
@@ -600,33 +617,51 @@ export default class Workspace {
         const output = this.settings.config.paths.output;
 
         if (output.acceptedExtensions && output.acceptedExtensions.length) {
-          jsRegExp = new RegExp(
+          this.jsRegExp = new RegExp(
             output.acceptedExtensions.map(ext => escapeRegExp(ext)).join('$|') + '$'
           );
         }
         if (output.root) {
           taskCount += 1;
-          walkFolder(join(this.path, output.root), files => {
-            processFolder(index, elimaneteUnnecessaryScriptsFiles(files, jsRegExp), 'script', done);
+          this.tsDistPath = join(this.path, output.root);
+          console.log('- Root: ', this.tsDistPath);
+          walkFolder(this.tsDistPath, files => {
+            processFolder(
+              index,
+              elimaneteUnnecessaryScriptsFiles(files, this.jsRegExp),
+              'script',
+              done
+            );
           });
         }
         if (output.include && output.include.length) {
-          taskCount += output.include.length;
+          taskCount++;
+          console.log('- Inc: ', output.include);
           walkFolder(join(this.scriptsPath), files => {
-            output.include.forEach(includePath => {
-              processFolder(
-                index,
-                elimaneteUnnecessaryScriptsFiles(files, jsRegExp),
-                'script',
-                done
-              );
-            });
+            processFolder(
+              index,
+              elimaneteUnnecessaryScriptsFiles(files, this.jsRegExp),
+              'script',
+              done,
+              {
+                ...defaultIndexOptions
+                /*
+                calculateCRC: false,
+                addDate: false
+                */
+              }
+            );
           });
         }
       } else {
         taskCount += 1;
         walkFolder(join(this.scriptsPath), files => {
-          processFolder(index, elimaneteUnnecessaryScriptsFiles(files, jsRegExp), 'script', done);
+          processFolder(
+            index,
+            elimaneteUnnecessaryScriptsFiles(files, this.jsRegExp),
+            'script',
+            done
+          );
         });
       }
 
@@ -638,8 +673,8 @@ export default class Workspace {
         {
           path: join(this.configPath, 'defaults.xml'),
           scheme: 'config',
-          relativeTo: this.configPath,
-        },
+          relativeTo: this.configPath
+        }
       ];
 
       const handleOther = () => {
@@ -647,7 +682,7 @@ export default class Workspace {
         var mapping;
         for (var i = 0; i < otherMapping.length; i++) {
           mapping = otherMapping[i];
-          if (mapping.os && mapping.os !== device.os) {
+          if (mapping.os && mapping.os !== this.device.os) {
             handled.push(i);
             continue;
           }
@@ -662,13 +697,215 @@ export default class Workspace {
       };
 
       handleOther();
-
-      var handleImages = handleImages_iOS;
-      if (device.os === 'Android') {
-        handleImages = handleImages_Android;
-      }
-      handleImages(device, this, index, done, {});
+      this.handleImages(done);
     });
+  }
+
+  private handleImages(done) {
+    let handleImages = handleImages_iOS;
+    if (this.device.os === 'Android') {
+      handleImages = handleImages_Android;
+    }
+    handleImages(this.device, this, this.index, done, {});
+  }
+
+  private async filterChangedEvents(events: any, folder: string) {
+    const files = {};
+    await Promise.all(
+      events
+        .filter(e => e.action !== nsfw.actions.RENAMED && e.action !== nsfw.actions.DELETED)
+        .map(async event => {
+          const fullPath = path.join(
+            event.newDirectory || event.directory,
+            event.newFile || event.file
+          );
+          return new Promise((resolve, reject) => {
+            fs.stat(fullPath, (err, stats) => {
+              if (err) {
+                return reject(err);
+              }
+              if (stats.isDirectory()) {
+                return resolve('');
+              }
+              let relativePath = path.relative(folder, fullPath);
+              relativePath = join(relativePath.split(path.sep).join('/'));
+              files[fullPath] = relativePath;
+              resolve(fullPath);
+            });
+          });
+        })
+    );
+    return files;
+  }
+
+  private eventsRemoveHandler(events: any) {
+    events
+      .filter(e => e.action === nsfw.actions.RENAMED || e.action === nsfw.actions.DELETED)
+      .forEach(event => {
+        const filename = path.join(
+          event.directory || event.newDirectory,
+          event.file || event.newFile
+        );
+        if (event.action === nsfw.actions.RENAMED) {
+          const oldFilename = path.join(event.directory, event.file);
+          delete this.index.files[oldFilename];
+        } else if (event.action === nsfw.actions.DELETED) {
+          delete this.index.files[filename];
+        }
+      });
+  }
+
+  public stopWatcher() {
+    if (this.watcherEnabled) {
+      console.info('⏱️ Stopping watcher...');
+      Object.keys(this.watchers).forEach(k => {
+        try {
+          this.watchers[k].stop();
+        } catch (e) {
+          console.warn('ignore watcher.stop: ', k);
+        }
+      });
+      this.watcherEnabled = false;
+    }
+  }
+  //@ts-ignore
+  private startWatcher() {
+    console.log('⏰ Starting watcher...');
+    this.stopWatcher();
+    nsfw(
+      this.assetsPath,
+      async events => {
+        this.eventsRemoveHandler(events);
+        const files = await this.filterChangedEvents(events, this.assetsPath);
+        console.log('⏰ W- Assets: Processing... ');
+        processFolder(
+          this.index,
+          files,
+          'asset',
+          () => {
+            console.log('W- Assets: Done. ');
+          },
+          null
+        );
+      },
+      {
+        errorCallback(errors) {
+          writeError(errors, 'W- Assets Error');
+        }
+      }
+    ).then(watcher => {
+      this.watchers['assets'] = watcher;
+      console.info('Workspace watcher "assets" start...');
+      return watcher.start();
+    });
+    nsfw(
+      this.scriptsPath,
+      async _events => {
+        const events = _events.filter(e => this.jsRegExp.test(e.newFile || e.file));
+        if (!events.length) {
+          return;
+        }
+        this.eventsRemoveHandler(events);
+        const files = await this.filterChangedEvents(events, this.scriptsPath);
+        console.log('⏰W- Scripts: Processing... ');
+        processFolder(
+          this.index,
+          files,
+          'script',
+          () => {
+            console.log('W- Scripts: Done. ', events);
+          },
+          null
+        );
+      },
+      {
+        errorCallback(errors) {
+          writeError(errors, 'W- Scripts Error');
+        }
+      }
+    ).then(watcher => {
+      this.watchers['script'] = watcher;
+      console.info('Workspace watcher "scripts" start...');
+      return watcher.start();
+    });
+    if (this.tsDistPath) {
+      console.info('Watcher TS path: ', this.tsDistPath);
+      nsfw(
+        this.tsDistPath,
+        async _events => {
+          const events = _events.filter(e => this.jsRegExp.test(e.newFile || e.file));
+          if (!events.length) {
+            return;
+          }
+          this.eventsRemoveHandler(events);
+          const files = await this.filterChangedEvents(events, this.tsDistPath);
+          console.log('⏰ W- TSScripts: Processing... ');
+          processFolder(
+            this.index,
+            files,
+            'script',
+            () => {
+              console.log('W- TSScripts: Done. ');
+            },
+            null
+          );
+        },
+        {
+          errorCallback(errors) {
+            writeError(errors, 'W- TSScripts Error');
+          }
+        }
+      ).then(watcher => {
+        this.watchers['tsscript'] = watcher;
+        console.info('Workspace watcher "tsscripts" start...');
+        return watcher.start();
+      });
+    }
+    nsfw(
+      this.fontPath,
+      async events => {
+        this.eventsRemoveHandler(events);
+        const files = await this.filterChangedEvents(events, this.fontPath);
+        console.log('⏰ W- Fonts: Processing... ');
+        processFolder(
+          this.index,
+          files,
+          'font',
+          () => {
+            console.log('W- Fonts: Done. ');
+          },
+          null
+        );
+      },
+      {
+        errorCallback(errors) {
+          writeError(errors, 'W- Fonts Error');
+        }
+      }
+    ).then(watcher => {
+      this.watchers['font'] = watcher;
+      console.info('Workspace watcher "fonts" start...');
+      return watcher.start();
+    });
+    nsfw(
+      this.imagesPath,
+      async events => {
+        console.log('⏰ W- Images: Processing... ');
+        this.handleImages(() => {
+          console.log('W- Images: Done. ');
+        });
+      },
+      {
+        errorCallback(errors) {
+          writeError(errors, 'W- Images Error');
+        }
+      }
+    ).then(watcher => {
+      this.watchers['images'] = watcher;
+      console.info('Workspace watcher "images" start...');
+      return watcher.start();
+    });
+    this.watcherEnabled = true;
   }
 
   /**
@@ -688,7 +925,7 @@ export default class Workspace {
       const jsonObj = await getProjectJSON(path.dirname(this.projectJSONPath));
       const index = Object.assign({}, jsonObj, {
         files: {},
-        projectID: '',
+        projectID: ''
       });
       let handleImages = handleImages_iOS;
       if (device.os === 'iOS') {
@@ -707,7 +944,7 @@ export default class Workspace {
         addDate: full,
         fileKeyType: 'path',
         addScaleFactor: device,
-        fileNameMatch: imageName,
+        fileNameMatch: imageName
       });
     });
   }

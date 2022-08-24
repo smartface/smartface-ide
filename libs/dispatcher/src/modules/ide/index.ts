@@ -10,7 +10,7 @@ export function initIDEWebSocket(browserGuid: string, ws: WebSocket) {
   sendToIDEEmulatorsAreReady(WsMap.instance.getAllDeviceWebSockets().map(ws => ws.deviceInfo));
   ws.on('message', msg =>
     parseEachJSON(msg.toString(), async (err, parsedMessage: EmulatorCommandType) => {
-      console.info('Get Command UI_WS >> ', parsedMessage.command, parsedMessage.data);
+      console.info('>> Get Command UI_WS >> ', parsedMessage.command);
       if (parsedMessage.command === 'emulators_update') {
         sendUpdateConnectedDevices(parsedMessage.data.deviceInfos);
       }
@@ -65,8 +65,8 @@ export function sendToIDEEmulatorsAreReady(deviceInfos: DeviceInfoType[]) {
     id: uuid.v4(),
     command: 'emulators_ready',
     data: {
-      deviceInfos,
-    },
+      deviceInfos
+    }
   });
 }
 
@@ -75,8 +75,8 @@ export function sendToIDEEmulatorsAreUpdating(deviceInfos: DeviceInfoType[]) {
     id: uuid.v4(),
     command: 'emulators_updating',
     data: {
-      deviceInfos,
-    },
+      deviceInfos
+    }
   });
 }
 
@@ -92,7 +92,7 @@ export function sendToIDEEmulatorsAreUpdated(
       message: 'Emulators updated.',
       updatedDeviceInfos,
       noChangesDeviceInfos,
-      errorDeviceInfos,
-    },
+      errorDeviceInfos
+    }
   });
 }

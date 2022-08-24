@@ -7,8 +7,8 @@ import { convertCLIArgsToOpts } from './util/convertCLIargs';
 import LogToConsole from './LogToConsole';
 
 export type ConfigurationPaths = minimist.ParsedArgs & {
-      rootPath?: string;
-    };
+  rootPath?: string;
+};
 
 export type ProjectPathsType = {
   iOS: any;
@@ -31,7 +31,7 @@ export class ConfigurationService {
   }
 
   getTempPath(): string {
-    return path.join(this.getWorkspacePath(), '.tmp');
+    return path.join(this.getWorkspacePath(), '.theia');
   }
 
   join() {}

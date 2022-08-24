@@ -15,18 +15,21 @@ import {
   DeviceInfoType,
   GetFilesCommandType,
   GetIndexCommandType,
-  UpdateCommandType,
+  UpdateCommandType
 } from '../../core/CommandTypes';
 import { FileInfoType } from '../../core/WorkspaceIndexTypes';
 import { sendReadyConnectedDevices } from './emulator-manager';
 import iOSMap from '../shared/workspace/iosmap';
+import { ConfigurationService } from '../shared/ConfigurationService';
+import { mkdirpSync } from '../shared/util/mkdirp';
+import Workspace from '../shared/workspace/workspace';
 
 export enum EmulatorStatus {
   READY = 'READY',
   UPDATING = 'UPDATING',
   UPDATED = 'UPDATED',
   ERROR = 'ERROR',
-  NOCHANGES = 'NOCHANGES',
+  NOCHANGES = 'NOCHANGES'
 }
 
 export class EmulatorWS extends EventEmitter {
@@ -39,6 +42,7 @@ export class EmulatorWS extends EventEmitter {
   static clearDeviceWs(deviceId: string) {
     WsMap.instance.delDeviceWebSocket(deviceId);
   }
+  public workspace: Workspace;
   private udpatingTimeoutTimer: NodeJS.Timeout;
   private logger: LogToConsole;
   private serviceWsMap: Map<string, WebSocket>;
@@ -93,7 +97,7 @@ export class EmulatorWS extends EventEmitter {
           this.status = EmulatorStatus.ERROR;
           return;
         }
-        this.logger.log(service, 'ws.onMessage', this.deviceId, parsedMessage);
+        this.logger.log('🤖 >> ', service, ' ws.onMessage ', this.deviceId, parsedMessage.command);
         if (parsedMessage.command && isConsoleCommands(parsedMessage.command)) {
           //TODO add deviceInfo from getIndex Command
           sendToIDEWebSocket(this.browserGuid, {
@@ -101,13 +105,14 @@ export class EmulatorWS extends EventEmitter {
             connectedObject: {
               deviceId: this.deviceId,
               browserGuid: this.browserGuid,
-              deviceInfo: this.deviceInfo,
-            },
+              deviceInfo: this.deviceInfo
+            }
           });
-        } else if(parsedMessage.command === 'getInfo'){
+        } else if (parsedMessage.command === 'getInfo') {
           this.deviceInfo = (parsedMessage as GetIndexCommandType).data;
           this.deviceInfo.isOverUSB = this.isOverUSB;
-          this.deviceInfo.brandModel = iOSMap[this.deviceInfo.brandModel] || this.deviceInfo.brandModel;
+          this.deviceInfo.brandModel =
+            iOSMap[this.deviceInfo.brandModel] || this.deviceInfo.brandModel;
           EmulatorWS.deviceInfos.set(this.deviceId, this.deviceInfo);
           sendReadyConnectedDevices();
         } else if (parsedMessage.command === 'getIndex') {
@@ -125,13 +130,13 @@ export class EmulatorWS extends EventEmitter {
           const zipData = await new GetFilesDataCommand().execute({
             os: this.deviceInfo.os,
             files: (parsedMessage as GetFilesCommandType).data.files,
-            indexFiles: this.indexFiles,
+            indexFiles: this.indexFiles
           });
           sendChunkedMessage(
             serviceWs,
             JSON.stringify(
               createCommandMessage('fileSize', {
-                size: zipData.byteLength,
+                size: zipData.byteLength
               })
             ),
             false,
@@ -148,6 +153,7 @@ export class EmulatorWS extends EventEmitter {
                     this.status = EmulatorStatus.ERROR;
                   } else {
                     this.sentCrcSum = this.readyCrcSum;
+                    console.info('📦 Sendind Done.');
                     //this.status = EmulatorStatus.UPDATED;
                   }
                 });
@@ -156,11 +162,11 @@ export class EmulatorWS extends EventEmitter {
           );
         } else if (parsedMessage.command === 'onUpdateStarted') {
           const data = (parsedMessage as UpdateCommandType).data;
-          if(data === 'no-update'){
+          if (data === 'no-update') {
             this.status = EmulatorStatus.NOCHANGES;
           }
         } else if (parsedMessage.command === 'onUpdateFinished') {
-          if(this._status === EmulatorStatus.UPDATING){
+          if (this._status === EmulatorStatus.UPDATING) {
             this.status = EmulatorStatus.UPDATED;
           }
           if (this.udpatingTimeoutTimer) {
@@ -171,8 +177,11 @@ export class EmulatorWS extends EventEmitter {
     });
 
     serviceWs.on('close', e => {
-      this.emit('close');
+      //this.emit('close');
       EmulatorWS.clearDeviceWs(this.deviceId);
+      if (this.workspace) {
+        this.workspace.stopWatcher();
+      }
       this.serviceWsMap.delete(service);
       this._status = EmulatorStatus.READY;
       sendReadyConnectedDevices();
@@ -185,9 +194,23 @@ export class EmulatorWS extends EventEmitter {
   async sendUpdateCode(isTriggerViaIDE: boolean = false, cb?: (errs: string[]) => void) {
     this.status = EmulatorStatus.UPDATING;
     let serviceWs: WebsocketWithStream = this.serviceWsMap.get('control') as WebsocketWithStream;
+    console.time('⏳ --GGettingindex' + this.deviceInfo.deviceID);
     const data = await new GetFilesIndexCommand().execute({ deviceInfo: this.deviceInfo });
     const files = data.files as FileInfoType[];
     this.readyCrcSum = this.calculateCrcSum(files);
+    //------ws.json debug -------//
+    const fs = require('fs');
+    const path = require('path');
+    mkdirpSync(ConfigurationService.instance.getTempPath());
+    fs.writeFile(
+      path.join(ConfigurationService.instance.getTempPath(), 'ws_diff.json'),
+      JSON.stringify(data, null, '\t'),
+      () => {
+        console.log('🔖 ', ConfigurationService.instance.getTempPath(), ' - diff writing done.');
+      }
+    );
+    //------ws.josn debug end-------//
+    console.timeEnd('⏳ --GGettingindex' + this.deviceInfo.deviceID);
     if (this.sentCrcSum === this.readyCrcSum && isTriggerViaIDE) {
       this.status = EmulatorStatus.NOCHANGES;
       return;
@@ -203,7 +226,7 @@ export class EmulatorWS extends EventEmitter {
           this.status = EmulatorStatus.ERROR;
           cb && cb(err);
         } else {
-          console.info('Sendind Done.');
+          console.info('📦 Sendind Done.');
           cb && cb(null);
           this.udpatingTimeoutTimer = setTimeout(() => {
             this.status = EmulatorStatus.NOCHANGES;
