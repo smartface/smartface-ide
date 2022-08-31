@@ -20,6 +20,26 @@ const uuid = require('node-uuid');
 const CRC32 = require('crc-32');
 const walk = require('walk');
 const nsfw = require('nsfw');
+const recursiveReaddir = require('recursive-readdir');
+
+export type FileStatType = {
+  dev: number;
+  mode: number;
+  nlink: number;
+  uid: number;
+  gid: number;
+  rdev: number;
+  blksize: number;
+  ino: number;
+  size: number;
+  blocks: number;
+  atime: Date;
+  mtime: Date;
+  ctime: Date;
+  birthtime: Date;
+  name: string;
+  type: string;
+};
 
 const reAsset = new RegExp(
   'Assets\\' + path.sep + '\\w+\\.(?:imageset|appiconset|launchimage)\\' + path.sep
@@ -281,7 +301,7 @@ function sort(obj) {
 
 function walkFolder(folder, callback) {
   console.time('⏳ walk ' + folder);
-  var files = {};
+  var files: { [key: string]: { relativePath: string; stats: FileStatType } } = {};
   Object.defineProperty(files, '__ofBaseFolder', {
     enumerable: false,
     configurable: true,
@@ -289,7 +309,8 @@ function walkFolder(folder, callback) {
   });
 
   var walker = walk.walk(folder, {
-    followLinks: true
+    followLinks: true,
+    filters: ['node_modules']
   });
   walker.name = folder;
   walker.on('file', fileHandler);
@@ -299,7 +320,7 @@ function walkFolder(folder, callback) {
     var fullPath = join(root, fileStat.name);
     var relativePath = path.relative(folder, fullPath);
     relativePath = join(relativePath.split(path.sep).join('/'));
-    files[fullPath] = relativePath;
+    files[fullPath] = { relativePath, stats: fileStat };
     if (typeof next === 'function') next();
   }
 
@@ -309,7 +330,43 @@ function walkFolder(folder, callback) {
   }
 }
 
-function processFolder(index, files, schema, callback, options = null) {
+function getURI(file, relativePath, schema, os) {
+  reAsset.lastIndex = 0;
+  if (os === 'Android') {
+    var density = path.parse(path.dirname(file)).name;
+    return schema + '://' + relativePath + '?density=' + density;
+  } else if (os === 'iOS') {
+    if (schema === 'image' && reAsset.test(relativePath)) {
+      var fileInfo = path.parse(relativePath);
+      var assetInfo = path.parse(fileInfo.dir);
+      var contentJSONImages = _contentsJSONCache[join(path.dirname(file), 'Contents.json')].images;
+      for (var i = 0; i < contentJSONImages.length; i++) {
+        if (contentJSONImages[i].filename === fileInfo.base) {
+          return (
+            schema +
+            '://' +
+            assetInfo.name +
+            (contentJSONImages[i].scale === '1x' ? '' : '@' + contentJSONImages[i].scale) +
+            fileInfo.ext +
+            '?path=' +
+            encodeURIComponent(relativePath)
+          );
+        }
+      }
+      throw Error('No file found in Xcode asset content.json');
+    } else {
+    }
+  }
+  return schema + '://' + relativePath;
+}
+
+function processFolder(
+  index,
+  files: { [key: string]: { relativePath: string; stats: FileStatType } },
+  schema,
+  callback,
+  options = null
+) {
   options = options || defaultIndexOptions;
   index = index || {};
   index.files = index.files || {};
@@ -319,21 +376,21 @@ function processFolder(index, files, schema, callback, options = null) {
     fq = new fileQueue(MAX_OPEN_FILES);
 
   for (var i = 0; i < filesArray.length; i++) {
-    options.addDate && taskCount++;
     options.calculateCRC && taskCount++;
-    var fileKey,
-      file = filesArray[i];
+    let fileKey;
+    let file = filesArray[i];
     if (options.fileKeyType == 'uri') {
-      fileKey = getURI(file);
+      fileKey = getURI(file, files[file].relativePath, schema, options.os);
     } else if (options.fileKeyType == 'path') {
       fileKey = file;
     }
-
     index.files[fileKey] = index.files[fileKey] || {};
     if (schema === 'script') {
       index.files[fileKey].fullPath = file;
     }
-    options.addDate && getFileStats(file, fileKey);
+    if (options.addDate) {
+      index.files[fileKey].date = files[file].stats.ctime;
+    }
     options.calculateCRC && getCRC(file, fileKey);
     options.addScaleFactor && addScaleFactor(index, file, fileKey, options.addScaleFactor);
   }
@@ -346,7 +403,8 @@ function processFolder(index, files, schema, callback, options = null) {
     if (taskCount !== 0) return;
     callback.call(me, index);
   }
-
+  /*
+  //No longer needed
   function getFileStats(file, fileKey) {
     fq.stat(file, function fStat(err, stats) {
       if (err) {
@@ -357,6 +415,7 @@ function processFolder(index, files, schema, callback, options = null) {
       finalize();
     });
   }
+  */
 
   function getCRC(file, fileKey) {
     fq.readFile(file, 'binary', (err, data) => {
@@ -367,37 +426,6 @@ function processFolder(index, files, schema, callback, options = null) {
       taskCount--;
       finalize();
     });
-  }
-
-  function getURI(file) {
-    reAsset.lastIndex = 0;
-    if (options.os === 'Android') {
-      var density = path.parse(path.dirname(file)).name;
-      return schema + '://' + files[file] + '?density=' + density;
-    } else if (options.os === 'iOS') {
-      if (schema === 'image' && reAsset.test(files[file])) {
-        var fileInfo = path.parse(files[file]);
-        var assetInfo = path.parse(fileInfo.dir);
-        var contentJSONImages =
-          _contentsJSONCache[join(path.dirname(file), 'Contents.json')].images;
-        for (var i = 0; i < contentJSONImages.length; i++) {
-          if (contentJSONImages[i].filename === fileInfo.base) {
-            return (
-              schema +
-              '://' +
-              assetInfo.name +
-              (contentJSONImages[i].scale === '1x' ? '' : '@' + contentJSONImages[i].scale) +
-              fileInfo.ext +
-              '?path=' +
-              encodeURIComponent(files[file])
-            );
-          }
-        }
-        throw Error('No file found in Xcode asset content.json');
-      } else {
-      }
-    }
-    return schema + '://' + files[file];
   }
 
   function addScaleFactor(index, file, fileKey, device) {
@@ -494,6 +522,24 @@ export default class Workspace {
     this.device = options.device instanceof Device ? options.device : new Device(options.device);
   }
 
+  private async addNodeModulesToIndex(cb) {
+    console.time('⏳ walk node_modules');
+    const files = await recursiveReaddir(join(this.scriptsPath, 'node_modules'));
+    files
+      .filter(file => this.jsRegExp.test(file))
+      .forEach(file => {
+        const relativePath = path.relative(this.scriptsPath, file);
+        const key = getURI(file, relativePath, 'script', this.device.os);
+        this.index.files[key] = {
+          fullPath: file,
+          crc: (Math.random() * 10000000000) % 1000000000,
+          date: new Date()
+        };
+      });
+    console.timeEnd('⏳ walk node_modules');
+    cb();
+  }
+
   /**
    * Calculates index from workspace
    * @param {Device} device - Required. Device information to get correct image resources
@@ -502,6 +548,7 @@ export default class Workspace {
     if (this.watcherEnabled) {
       return sort({ ...this.index, files: { ...this.index.files } });
     }
+    console.time('📄 WS indexed');
     this.settings = {};
     this.imagesPath;
     const jsonObj = await getProjectJSON(path.dirname(this.projectJSONPath));
@@ -585,12 +632,15 @@ export default class Workspace {
         if (taskCount !== 0) return;
         index = sort(index);
         this.startWatcher();
+        console.timeEnd('📄 WS indexed');
         resolve(index);
       };
       index.projectID = this.getProjectID(true);
       index.files = {};
       _contentsJSONCache = {};
       updateScriptsPath(index);
+      ++taskCount;
+      this.addNodeModulesToIndex(done);
       try {
         delete require.cache[this.settingsPath];
         this.settings = require(this.settingsPath);
@@ -729,7 +779,7 @@ export default class Workspace {
               }
               let relativePath = path.relative(folder, fullPath);
               relativePath = join(relativePath.split(path.sep).join('/'));
-              files[fullPath] = relativePath;
+              files[fullPath] = { relativePath, stats };
               resolve(fullPath);
             });
           });
@@ -813,7 +863,7 @@ export default class Workspace {
           files,
           'script',
           () => {
-            console.log('W- Scripts: Done. ', events);
+            console.log('W- Scripts: Done. ');
           },
           null
         );

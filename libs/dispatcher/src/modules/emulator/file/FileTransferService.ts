@@ -12,6 +12,7 @@ export function getFilesData(options: {
 }): Promise<Buffer> {
   const { os, files, indexFiles } = options;
   const isIOS = os === 'iOS';
+  console.time('🗳️ Files packed:');
   const basePaths = ConfigurationService.instance.getProjectPaths()[os];
   const filePackager = new FilePackager();
   files.forEach(file => {
@@ -35,6 +36,7 @@ export function getFilesData(options: {
             console.log('🔖 ', ConfigurationService.instance.getTempPath(), ' - zip writing done.');
           }
         );
+        console.timeEnd('🗳️ Files packed:');
         resolve(data);
       }
     });

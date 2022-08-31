@@ -15,16 +15,16 @@ import LogToConsole from '../shared/LogToConsole';
 import Device from '../shared/workspace/device';
 
 const IMAGE_FORMAT = {
-  png: Jimp.MIME_PNG || 'image/png',
+  png: Jimp.MIME_PNG || 'image/png'
 };
 
 export default function createImageApi(app: Express, options: any = {}) {
   const wsPath = ConfigurationService.instance.getWorkspacePath();
   const tempPath = ConfigurationService.instance.getTempPath();
   const logger = LogToConsole.instance;
-  logger.log('image serving ready...');
+  logger.log('🖥️ image serving ready...');
   const workspace = new Workspace({
-    path: wsPath,
+    path: wsPath
   });
   app.get(
     ConfigurationService.baseImageServePath + '/:imageName',
@@ -33,9 +33,9 @@ export default function createImageApi(app: Express, options: any = {}) {
         resourceFolderOrder: _ => _,
         os: req.query.os,
         screen: {
-          dp: req.query.density,
+          dp: req.query.density
         },
-        brandModel: req.query.brandModel,
+        brandModel: req.query.brandModel
       });
       let densityRatio = req.query.densityRatio || 1;
       try {
@@ -53,7 +53,7 @@ export default function createImageApi(app: Express, options: any = {}) {
       }
 
       var zoomLevel = Number(req.query.zoomLevel) || 1;
-      
+
       var imageName = req.params.imageName;
       var imageFormat = getImageFormat(imageName);
       console.info('IMAGE_FORMAT:> ', imageFormat, ' -- ', imageName);
@@ -141,7 +141,7 @@ export default function createImageApi(app: Express, options: any = {}) {
         'Cache-directive': 'no-cache',
         'Cache-control': 'no-cache',
         Pragma: 'no-cache',
-        Expires: '0',
+        Expires: '0'
       })
       .send(data);
   }
