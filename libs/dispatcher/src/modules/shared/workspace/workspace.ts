@@ -19,7 +19,7 @@ const path = require('path');
 const uuid = require('node-uuid');
 const CRC32 = require('crc-32');
 const walk = require('walk');
-const nsfw = require('nsfw');
+const nsfw = require('@smartface/nsfw-prebuild');
 const recursiveReaddir = require('recursive-readdir');
 
 export type FileStatType = {

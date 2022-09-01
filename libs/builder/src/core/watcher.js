@@ -1,5 +1,5 @@
 const path = require("path");
-const nsfw = require('nsfw');
+const nsfw = require('@smartface/nsfw-prebuild');
 
 const util = require("../util");
 const intervalChecker = require("../util/intervalChecker");

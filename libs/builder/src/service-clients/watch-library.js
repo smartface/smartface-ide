@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const nsfw = require('nsfw');
+const nsfw = require('@smartface/nsfw-prebuild');
 
 const LibraryService = require("@smartface/library-reader");
 

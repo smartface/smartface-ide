@@ -1,6 +1,6 @@
 const path = require('path');
 
-const nsfw = require('nsfw');
+const nsfw = require('@smartface/nsfw-prebuild');
 
 const EVENT_TYPE = require('./src/core/event-type');
 const run = require('./src/run');

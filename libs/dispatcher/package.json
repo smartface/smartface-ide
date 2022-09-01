@@ -54,7 +54,7 @@
     "jszip": "^3.7.1",
     "minimist": "^1.2.5",
     "node-uuid": "^1.4.8",
-    "nsfw": "^2.2.2",
+    "@smartface/nsfw-prebuild": "^2.2.2",
     "recursive-readdir": "^2.2.2",
     "uuid": "^8.3.2",
     "walk": "^2.3.14",

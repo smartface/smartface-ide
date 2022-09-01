@@ -29,8 +29,8 @@
     "handlebars": "^4.0.6",
     "html-parse-stringify": "^1.0.2",
     "jsonlint": "^1.6.3",
-    "minimist": "^1.2.5",
-    "nsfw": "^2.2.2",
+    "minimist": "^1.2.5",    
+    "@smartface/nsfw-prebuild": "^2.2.2",
     "prettier": "^1.15.3",
     "recursive-readdir": "^2.2.1",
     "rmdir": "^1.2.0"
