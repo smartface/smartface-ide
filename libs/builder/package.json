@@ -1,6 +1,6 @@
 {
   "name": "@smartface/builder",
-  "version": "0.10.4",
+  "version": "0.10.5-rc.2",
   "description": "Smartface Builder",
   "bin": {
     "smfcTranspiler": "bin/exec.js",
@@ -19,6 +19,7 @@
   "dependencies": {
     "@smartface/html-to-text": "^1.0.5",
     "@smartface/library-reader": "^0.8.4",
+    "@smartface/nsfw-prebuild": "^2.2.2",
     "@smartface/styler": "^1.3.8",
     "@smartface/xmlmergejs": "^1.0.0",
     "async": "^2.5.0",
@@ -29,8 +30,7 @@
     "handlebars": "^4.0.6",
     "html-parse-stringify": "^1.0.2",
     "jsonlint": "^1.6.3",
-    "minimist": "^1.2.5",    
-    "@smartface/nsfw-prebuild": "^2.2.2",
+    "minimist": "^1.2.5",
     "prettier": "^1.15.3",
     "recursive-readdir": "^2.2.1",
     "rmdir": "^1.2.0"

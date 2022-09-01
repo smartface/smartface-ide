@@ -1,6 +1,6 @@
 {
   "name": "@smartface/dispatcher",
-  "version": "0.10.5-rc.1",
+  "version": "0.10.5-rc.2",
   "description": "Handles Emulator Dispatcher Part of SmartfaceCloud",
   "main": "./lib/index.js",
   "publishConfig": {
@@ -42,6 +42,7 @@
   },
   "homepage": "https://github.com/smartface/smartface-ide",
   "dependencies": {
+    "@smartface/nsfw-prebuild": "^2.2.2",
     "cors": "^2.8.5",
     "crc-32": "^1.2.0",
     "express": "^4.17.1",
@@ -54,7 +55,6 @@
     "jszip": "^3.7.1",
     "minimist": "^1.2.5",
     "node-uuid": "^1.4.8",
-    "@smartface/nsfw-prebuild": "^2.2.2",
     "recursive-readdir": "^2.2.2",
     "uuid": "^8.3.2",
     "walk": "^2.3.14",
