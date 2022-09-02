@@ -4,6 +4,8 @@ import { ConfigurationService } from '../../shared/ConfigurationService';
 import { mkdirpSync } from '../../shared/util/mkdirp';
 import FilePackager from './FilePackager';
 import { findFilePath, parse } from './URIParser';
+const fs = require('fs');
+const path = require('path');
 
 export function getFilesData(options: {
   files: string[];
@@ -21,13 +23,19 @@ export function getFilesData(options: {
     var info = parse(file, isIOS);
     filePackager.addFile(filePath, info.fileName, info.fileNameWithSchema);
   });
+
+  fs.writeFile(
+    path.join(ConfigurationService.instance.getTempPath(), 'requested_files_debug.json'),
+    JSON.stringify({files}, null, '\t'),
+    () => {
+      console.log('🔖  Requested files has been written requested_debug.json');
+    }
+  );
   return new Promise((resolve, reject) => {
     filePackager.finalize((err, data) => {
       if (err) {
         return reject('**ERROR** Finalizing package have failed: ' + err);
       } else {
-        const fs = require('fs');
-        const path = require('path');
         mkdirpSync(ConfigurationService.instance.getTempPath());
         fs.writeFile(
           path.join(ConfigurationService.instance.getTempPath(), 'dis_ws_diff.zip'),

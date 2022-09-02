@@ -249,7 +249,10 @@ function handleImages_Android(device, me, index, done, options) {
       }
     });
     for (var imgInfo in images) {
-      newFiles[images[imgInfo].fullPath] = path.parse(files[images[imgInfo].fullPath]).base;
+      newFiles[images[imgInfo].fullPath] = {
+        ...files[images[imgInfo].fullPath],
+        relativePath: path.parse(files[images[imgInfo].fullPath].relativePath).base
+      };
     }
 
     Object.defineProperty(newFiles, '__ofBaseFolder', {
@@ -528,11 +531,11 @@ export default class Workspace {
     files
       .filter(file => this.jsRegExp.test(file))
       .forEach(file => {
-        const relativePath = path.relative(this.scriptsPath, file);
-        const key = getURI(file, relativePath, 'script', this.device.os);
-        this.index.files[key] = {
+        let relativePath = path.relative(this.scriptsPath, file);
+        relativePath = join(relativePath.split(path.sep).join('/'));
+        this.index.files[`script://${relativePath}`] = {
           fullPath: file,
-          crc: (Math.random() * 10000000000) % 1000000000,
+          crc: Math.floor((Math.random() * 10000000000) % 1000000000),
           date: new Date()
         };
       });
