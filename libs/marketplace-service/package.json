@@ -1,6 +1,6 @@
 {
   "name": "@smartface/marketplace-service",
-  "version": "0.10.5",
+  "version": "0.10.6-beta.0",
   "description": "",
   "main": "marketplace-service.js",
   "bin": {
