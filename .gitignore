@@ -3,6 +3,7 @@ node_modules
 /libs/**/lib
 !/libs/marketplace-service/src/lib
 *.log
+.vscode/
 *-app/*
 !*-app/package.json
 !*-app/scripts

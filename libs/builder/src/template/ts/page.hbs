@@ -8,9 +8,9 @@ import StatusBar from '@smartface/native/application/statusbar';
 import HeaderBar from '@smartface/native/ui/headerbar';
 import { StatusBarStyle } from "@smartface/native/application/statusbar/statusbar";
 
-{{require smfObjects footer ""}}
-{{getRequiredIrregularEnums smfObjects}}
-{{getRequiredLibModules smfObjects ""}}
+{{require fullSmfObjects footer ""}}
+{{getRequiredIrregularEnums fullSmfObjects}}
+{{getRequiredLibModules fullSmfObjects "" }}
 {{!-- declare namespace {{capitalizeFirstLetter pageName}} {
     export type ChildrenNames = {{#each children}} | {{json name}}{{/each}};
 } --}}
@@ -94,6 +94,8 @@ class {{capitalizeFirstLetter pageName}} extends  styleablePageMixin(Page) {
     }
 }
 export default {{capitalizeFirstLetter pageName}};
+
+{{> body footer.headerBar pageName=./pageName}}
 
 {{> body}}
 

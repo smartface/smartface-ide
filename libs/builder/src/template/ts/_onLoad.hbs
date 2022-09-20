@@ -12,4 +12,10 @@ onLoad(){
   {{#each  headerBar.attributes}} this.headerBar.{{@key}} = {{json this}};{{/each}}
   {{/if}}
   {{#each mapviewRefs}} {{this}}.android.prepareMap(); {{/each}}
+  {{#if headerBar.smfObjects }}
+    this.headerBar.leftItemEnabled = false;
+    const headerLayout = new {{headerBar.smfObjects.0.varName}}();
+    this.addStyleableChild(headerLayout, 'headerLayout');
+    this.headerBar.layout = headerLayout;
+  {{/if}}
 }

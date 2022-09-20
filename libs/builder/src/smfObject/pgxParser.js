@@ -142,11 +142,13 @@ function parsePgx(components) {
     });
     footer.mapviewRefs = prepareMapviewRefs(componentById, components);
     footer.pageName = footer.page ? footer.page.varName : '';
-    if (footer.page)
+    if (footer.page){
         footer.page.safeAreaEnabled = !!components[0].userProps.safeAreaEnabled;
+    }
     const _smfObjects = footer.pageName === LIBRARY_PAGE_NAME ? smfObjects :
         smfObjects.filter(comp => !checkParentIsLibraryComp(comp, compsObject));
-    setLibComponentsTypes(smfObjects);
+
+    setLibComponentsTypes(smfObjects.concat(footer.headerBar.smfObjects || []));
 
     if (isLibraryPage) {
         prepareAndSetComponentsAssignedToRoot(smfObjects, componentById);
@@ -166,6 +168,7 @@ function parsePgx(components) {
         name: footer.page ? footer.page.name : '',
         pageName: footer.pageName,
         smfObjects: _smfObjects,
+        fullSmfObjects: footer.headerBar.smfObjects ? _smfObjects.concat(footer.headerBar.smfObjects) : _smfObjects,
         footer: footer,
         children: childrenOfPage,
         componentsAssignedToPage: prepareComponentsAssignedToPage(smfObjects, componentById)
