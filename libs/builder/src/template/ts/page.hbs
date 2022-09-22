@@ -18,7 +18,7 @@ import { StatusBarStyle } from "@smartface/native/application/statusbar/statusba
 interface {{capitalizeFirstLetter pageName}}Children {
     {{#each smfObjects}} {{name}}?: {{varName}}; {{/each}}
   statusBar?: typeof StatusBar;
-  headerBar?: HeaderBar;
+  headerBar?: HeaderBar{{#if footer.headerBar.smfObjects.0.varName }} & { layout: HeaderBar["layout"] | {{footer.headerBar.smfObjects.0.varName}}  } {{/if}} ;
   [key: string]: any;
 };
 

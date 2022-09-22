@@ -14,8 +14,7 @@ onLoad(){
   {{#each mapviewRefs}} {{this}}.android.prepareMap(); {{/each}}
   {{#if headerBar.smfObjects }}
     this.headerBar.leftItemEnabled = false;
-    const headerLayout = new {{headerBar.smfObjects.0.varName}}();
-    this.addStyleableChild(headerLayout, 'headerLayout');
-    this.headerBar.layout = headerLayout;
+    this.addStyleableChild(this.{{headerBar.smfObjects.0.name}}, {{json headerBar.smfObjects.0.name}});
+    this.headerBar.layout = this.{{headerBar.smfObjects.0.name}};
   {{/if}}
 }
