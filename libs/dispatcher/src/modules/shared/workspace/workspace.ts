@@ -800,7 +800,7 @@ export default class Workspace {
           event.file || event.newFile
         );
         if (event.action === nsfw.actions.RENAMED) {
-          const oldFilename = path.join(event.directory, event.file);
+          const oldFilename = path.join(event.directory, event.oldFile || event.file);
           delete this.index.files[oldFilename];
         } else if (event.action === nsfw.actions.DELETED) {
           delete this.index.files[filename];
