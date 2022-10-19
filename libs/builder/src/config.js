@@ -87,6 +87,8 @@ function initPathsFromConfigFile(configFilePath) {
     defaultPaths.libraryUserFolder && (UPDATED_PATHS.LIBRARY_USER_FOLDER = pathJoinWithWorkspace(defaultPaths.libraryUserFolder));
     defaultPaths.themesFolder && (UPDATED_PATHS.THEMES_FOLDER = pathJoinWithWorkspace(defaultPaths.themesFolder));
     defaultPaths.themesDistFolder && (UPDATED_PATHS.THEMES_DIST_FOLDER = pathJoinWithWorkspace(defaultPaths.themesDistFolder));
+    UPDATED_PATHS.ROUTER_UI_FOLDER = pathJoinWithWorkspace(defaultPaths.routerUiFolder || 'scripts/generated/router');
+    UPDATED_PATHS.ROUTER_UUSER_FOLDER = pathJoinWithWorkspace(defaultPaths.routerUserFolder || 'scripts/router');
     if (defaultPaths.pagesFolder) {
       UPDATED_PATHS.PAGES_FOLDER = pathJoinWithWorkspace(defaultPaths.pagesFolder);
     }

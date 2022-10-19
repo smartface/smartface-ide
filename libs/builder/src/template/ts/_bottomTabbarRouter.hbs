@@ -1,0 +1,67 @@
+import { styleableComponentMixin, ThemeService } from '@smartface/styling-context';
+import { ComponentStyleContext } from '@smartface/styling-context/lib/ComponentStyleContext';
+import { BottomTabBarRouter } from '@smartface/router';
+import TabBarItem from '@smartface/native/ui/tabbaritem';
+import createRenderer from '@smartface/router/lib/native/createRenderer';
+
+
+interface ${{capitalizeFirstLetter libraryType}}Children {
+    {{#each smfObjects}} {{name}}?: {{varName}}; {{/each}}
+    [key: string]: any;
+};
+
+class ${{capitalizeFirstLetter libraryType}} extends BottomTabBarRouter {
+
+    static $$styleContext: ComponentStyleContext = { 
+        classNames: {{json className}},
+        defaultClassNames: {{json defaultClassNames}},
+        userProps: {{#isEmpty props}} {} {{else}}{{> eachHelper props=props}}{{/isEmpty}} 
+    };
+
+    constructor(props){
+        super({
+            renderer: createRenderer(),
+            homeRoute: 0,
+            tabbarParams: () => {
+                const style = ThemeService.instance.getNativeStyle({{json className}});
+                return {
+                    itemColor: style.itemColor,
+                    ios: style.ios,
+                    backgroundColor: style.backgroundColor
+                };
+            },
+            ...props
+        });
+    }
+    
+}
+
+
+{{> body}}
+
+export default class BottomTabbarRouterHelper  {
+
+    protected _children: ${{capitalizeFirstLetter libraryType}}Children = {};
+    get children(): Readonly<${{capitalizeFirstLetter libraryType}}Children> {
+        return this._children;
+    }
+
+    bottomTabbarRouter: ${{capitalizeFirstLetter libraryType}};
+
+    constructor(props: any){
+        const items = [{{#each children}}this.addTabbarItem(new {{constructorName}}(), {{json name}}) {{#if @last}} {{else}}, {{/if}} {{/each}}];
+        {{#each componentsAssignedToRoot}}this.{{name}} = {{ref}};{{/each}}
+        this.bottomTabbarRouter = new ${{capitalizeFirstLetter libraryType}}({
+            items,
+            ...props
+        })
+        ThemeService.instance.addGlobalComponent(this as any, {{json name}});
+    }
+
+    private addTabbarItem(item: TabBarItem, name: string){
+        this._children[name] = item;
+        return item;
+    }
+}
+
+

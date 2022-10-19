@@ -36,6 +36,7 @@ const CONTAINER_COMPONENTS = {
 };
 
 const STATIC_COMPONENTS = {
+  BottomTabbar: 'bottomTabbar',
   StatusBar: 'statusBar',
   HeaderBar: 'headerBar',
   Page: 'page'
