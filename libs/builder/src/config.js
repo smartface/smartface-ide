@@ -35,6 +35,7 @@ function getWorkspaceRelativePaths(workspacePath) {
   return {
     WORKSPACE_PATH: workspacePath,
     PGX_FOLDER: path.join(workspacePath, '.ui'),
+    ROUTER_FOLDER: path.join(workspacePath, '.ui/router'),
     SCRIPTS_FOLDER: path.join(workspacePath, 'scripts'),
     UI_FOLDER: path.join(workspacePath, 'scripts', 'ui'),
     PAGES_FOLDER: path.join(workspacePath, 'scripts', 'pages'),
@@ -88,7 +89,7 @@ function initPathsFromConfigFile(configFilePath) {
     defaultPaths.themesFolder && (UPDATED_PATHS.THEMES_FOLDER = pathJoinWithWorkspace(defaultPaths.themesFolder));
     defaultPaths.themesDistFolder && (UPDATED_PATHS.THEMES_DIST_FOLDER = pathJoinWithWorkspace(defaultPaths.themesDistFolder));
     UPDATED_PATHS.ROUTER_UI_FOLDER = pathJoinWithWorkspace(defaultPaths.routerUiFolder || 'scripts/generated/router');
-    UPDATED_PATHS.ROUTER_UUSER_FOLDER = pathJoinWithWorkspace(defaultPaths.routerUserFolder || 'scripts/router');
+    UPDATED_PATHS.ROUTER_USER_FOLDER = pathJoinWithWorkspace(defaultPaths.routerUserFolder || 'scripts/router');
     if (defaultPaths.pagesFolder) {
       UPDATED_PATHS.PAGES_FOLDER = pathJoinWithWorkspace(defaultPaths.pagesFolder);
     }

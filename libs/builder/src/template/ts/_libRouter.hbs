@@ -1,0 +1,35 @@
+{{> header}}
+
+//@ts-ignore
+import Page from '@smartface/native/ui/page';
+//@ts-ignore
+import { NativeStackRouter, Route, Router } from '@smartface/router';
+{{#each imports}}import {{name}} from {{json from}};{{getNewLine}} {{/each}}
+
+{{#each routers}}
+
+{{#if @first}} export default {{/if}} class {{varName}}<T = Page> extends {{baseRouter}} {
+
+    {{#isEmpty routes }} {{else}} {{#each routes}} {{name}}: {{varName}}; {{/each}} {{/isEmpty}}
+    {{#isEqual type "BottomTabBarRouter"}}
+    private set _routes(routes){ 
+      //@ts-ignore
+      this.bottomTabbarRouter._routes = routes;
+    }
+    get router(){
+        return this.bottomTabbarRouter;
+    }
+     {{/isEqual}}
+    constructor(basePath: string) {
+        super(
+            {{> eachHelper props=props isAttribute=true params=false basePath=path to=to }}
+        );
+        {{#isEmpty routes }} {{else}} {{#each routes}} this.{{name}}= new {{varName}}(basePath); {{getNewLine}} {{/each}} this._routes =  {{#if hasBottomTabBarRouter}}[ {{#each routes}} {{#isEqual type "BottomTabBarRouter"}} this.{{name}}.router {{else}}  this.{{name}} {{/isEqual}} {{#if @last}}  {{else}}, {{/if}}   {{/each}}  ]  {{else}}this.children {{/if}}; {{/isEmpty}}
+    }
+    {{#isEmpty routes }} {{else}} get children(){ return [ {{#each routes}} this.{{name}} {{#if @last}}  {{else}}, {{/if}}   {{/each}} ] } {{/isEmpty}}
+    {{#isEqual type "Route"}} 
+    build(router) {
+        return new {{pageVarName}} (router);
+    } {{/isEqual}}
+}
+{{/each}}

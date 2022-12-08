@@ -220,6 +220,37 @@ function readPgx(filePath) {
   });
 }
 
+function readRouterFile(filePath) {
+  return new Promise((resolve, reject) => {
+    isExistsFileDir(filePath)
+      .then(res => {
+        if (res.existing && res.file) {
+          fs.readFile(filePath, "utf8", (err, data) => {
+            if (!err) {
+              if (!data)
+                return resolve(null);
+              try {
+                resolve(jsonlint.parse(data));
+              }
+              catch (ex) {
+                reject(Object.assign(new Error('Router JSON Parse Error \n' + ex.toString().replace(/\n/gm, "\n\t")), { file: filePath }));
+              }
+            }
+            else {
+              reject(Object.assign(new Error("Router readFile"), { file: filePath }));
+            }
+          });
+        }
+        else {
+          reject(new Error("Router File ENOENT" + filePath));
+        }
+      }, err => {
+        console.log(err.toString());
+        return resolve(null);
+      });
+  });
+}
+
 function removeFile(filePath) {
   return new Promise((resolve, reject) => {
     isExistsFileDir(filePath).then(res => {
@@ -359,6 +390,10 @@ function isSmartfaceDesignFile(filename) {
   return SMARTFACE_DESİGN_REGEXP.test(filename);
 }
 
+function isSmartfaceRouterDesignFile(filename) {
+  return SMARTFACE_DESİGN_REGEXP.test(filename);
+}
+
 function isStyleDesignFile(filename) {
   return STYLE_DESIGN_REGEXP.test(filename)
 }
@@ -372,6 +407,7 @@ module.exports = {
   capitalizeFirstLetter: capitalizeFirstLetter,
   ArrNoDupe: ArrNoDupe,
   readPgx: readPgx,
+  readRouterFile,
   writeError: writeError,
   removeFile: removeFile,
   getDiffAsObject: getDiffAsObject,
@@ -382,5 +418,6 @@ module.exports = {
   getFamilyTree: getFamilyTree,
   logToDispatcher: logToDispatcher,
   isSmartfaceDesignFile,
+  isSmartfaceRouterDesignFile,
   isStyleDesignFile
 };

@@ -298,6 +298,8 @@ function isEmpty(val, options) {
   const type = typeof val;
   if (type === 'object') {
     if (val && Object.keys(val).length > 0) return options.inverse(this);
+  } else if (Number(val.length) === 0) {
+    return options.fn(this);
   } else if (val) {
     return options.inverse(this);
   }
@@ -307,6 +309,13 @@ function isEmpty(val, options) {
 function isValidObject(val, options) {
   const type = typeof val;
   if (type === 'object' && val !== null && Object.keys(val).length > 0) {
+    return options.fn(this);
+  }
+  return options.inverse(this);
+}
+
+function isValidArray(val, options) {
+  if (val instanceof Array && ['number', 'string'].includes(typeof val[0])) {
     return options.fn(this);
   }
   return options.inverse(this);
@@ -390,6 +399,7 @@ function getAdditionalData(obj) {
 module.exports = {
   getHelpers(_compiler) {
     return {
+      isValidArray,
       getStatusBarProp,
       capitalizeFirstLetter,
       getRequiredModules,
