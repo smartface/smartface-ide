@@ -22,6 +22,7 @@ const src = {
   component: projectType => `../template/${projectType}/component.hbs`,
   userFile: projectType => `../template/${projectType}/userFile.hbs`,
   eachHelper: projectType => `../template/${projectType}/_eachHelper.hbs`,
+  eachRoutes: projectType => `../template/${projectType}/_eachRoutes.hbs`,
   userPage: projectType => `../template/${projectType}/userPage.hbs`,
   onRowCreate: projectType => `../template/${projectType}/_onRowCreate.hbs`,
   gridViewBody: projectType => `../template/${projectType}/_gridViewBody.hbs`,
@@ -47,8 +48,8 @@ module.exports = function compile(templateName) {
       if (data.name === '') return;
       return prettier.format(compiler(data), getFormatterSettings());
     } catch (error) {
-      console.log('Error on compile : ', error.message, templateName, data);
-      return 'Template Compile ERROR: ' + error.message;
+      console.log('Error on compile : ', error.stack || error.message);
+      return 'Template Compile ERROR: ' + error.stack || error.message;
     }
   };
 };
@@ -71,6 +72,7 @@ module.exports.init = () => {
     component: readModuleFile(src.component(projectType)),
     userFile: readModuleFile(src.userFile(projectType)),
     eachHelper: readModuleFile(src.eachHelper(projectType)),
+    eachRoutes: readModuleFile(src.eachRoutes(projectType)),
     userPage: readModuleFile(src.userPage(projectType)),
     onRowCreate: readModuleFile(src.onRowCreate(projectType)),
     gridViewBody: readModuleFile(src.gridViewBody(projectType)),

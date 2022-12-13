@@ -5,13 +5,15 @@ import TabBarItem from '@smartface/native/ui/tabbaritem';
 import createRenderer from '@smartface/router/lib/native/createRenderer';
 
 
+{{> body}}
+
 interface ${{capitalizeFirstLetter libraryType}}Children {
     {{#each smfObjects}} {{name}}?: {{varName}}; {{/each}}
     [key: string]: any;
 };
 
-class ${{capitalizeFirstLetter libraryType}} extends BottomTabBarRouter {
-
+export default class ${{capitalizeFirstLetter libraryType}} extends BottomTabBarRouter {
+    protected _children: ${{capitalizeFirstLetter libraryType}}Children = {};
     static $$styleContext: ComponentStyleContext = { 
         classNames: {{json className}},
         defaultClassNames: {{json defaultClassNames}},
@@ -27,41 +29,27 @@ class ${{capitalizeFirstLetter libraryType}} extends BottomTabBarRouter {
                 return {
                     itemColor: style.itemColor,
                     ios: style.ios,
-                    backgroundColor: style.backgroundColor
+                    backgroundColor: style.backgroundColor,
+                    iconSize: style.iconSize
                 };
             },
+            items: [
+            {{#each children}} new {{constructorName}}() {{#if @last}} {{else}}, {{getNewLine}} {{/if}}  {{/each}}
+            ],
             ...props
         });
+        this.initTheme();
+    }
+
+    initTheme() {
+        //@ts-ignore
+        this._items.forEach((item, index) => {
+            this._children['tabbaritem' + index] = item;
+        });
+        ThemeService.instance.addGlobalComponent({
+            children: this._children
+        } as any, 'bottomTabbar');
     }
     
 }
-
-
-{{> body}}
-
-export default class BottomTabbarRouterHelper  {
-
-    protected _children: ${{capitalizeFirstLetter libraryType}}Children = {};
-    get children(): Readonly<${{capitalizeFirstLetter libraryType}}Children> {
-        return this._children;
-    }
-
-    bottomTabbarRouter: ${{capitalizeFirstLetter libraryType}};
-
-    constructor(props: any){
-        const items = [{{#each children}}this.addTabbarItem(new {{constructorName}}(), {{json name}}) {{#if @last}} {{else}}, {{/if}} {{/each}}];
-        {{#each componentsAssignedToRoot}}this.{{name}} = {{ref}};{{/each}}
-        this.bottomTabbarRouter = new ${{capitalizeFirstLetter libraryType}}({
-            items,
-            ...props
-        })
-        ThemeService.instance.addGlobalComponent(this as any, {{json name}});
-    }
-
-    private addTabbarItem(item: TabBarItem, name: string){
-        this._children[name] = item;
-        return item;
-    }
-}
-
 

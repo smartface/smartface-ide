@@ -34,14 +34,14 @@ function Watcher(callBack) {
   const libraryFolder = path.join(pgxFolder, 'library');
   let watcherEnabled = true;
 
-  this.start = watcherHandler => {
+  this.start = (watcherHandler, routerWatcherHandler) => {
     let taskCount = 2;
     pgxTimer = intervalChecker(pgxFolder, false, startHelper, stop);
     themesTimer = intervalChecker(themesFolder, false, startHelper, stop);
 
     function startHelper() {
       if (--taskCount === 0) {
-        _start(watcherHandler);
+        _start(watcherHandler, routerWatcherHandler);
       }
     }
   };
@@ -106,7 +106,7 @@ function Watcher(callBack) {
         event.directory || event.newDirectory,
         event.file || event.newFile
       );
-      console.log('Filename: ', filename);
+      //console.log('Filename: ', filename);
       if (!watcherEnabled) {
         return console.warn('├─> Ignore Change > ', EVENT_TYPE[event.action], filename);
       }
@@ -115,7 +115,8 @@ function Watcher(callBack) {
       if (new RegExp(`library${'\\' + path.sep}.*\.(pgx|cpx)`).test(filename)) {
         return; //skip library folder.
       } else if (!util.isSmartfaceRouterDesignFile(filename)) {
-        return console.warn('├─> Skip Router Change > ', EVENT_TYPE[event.action], filename);
+        console.log('├─ ⏰ 🔀 »', EVENT_TYPE[event.action], '« ', filename);
+        return routerWatcherHandler.transpileAllRouterFiles();
       } else if (!util.isSmartfaceDesignFile(filename)) {
         return console.warn('├─> Skip Change > ', EVENT_TYPE[event.action], filename);
       }
@@ -135,7 +136,7 @@ function Watcher(callBack) {
             }
           } else {
             watcherHandler.transpileAllPgxFiles();
-            routerWatcherHandler.transpileAllRouterFiles()
+            routerWatcherHandler.transpileAllRouterFiles();
           }
         },
         err => util.writeError(err, 'isExistsFileDir')

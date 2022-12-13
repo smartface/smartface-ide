@@ -2,11 +2,11 @@ const path = require('path');
 const util = require('../util');
 
 const BASE_ROUTER_MAP = {
-  AppRouter: 'Router',
+  AppRouter: 'NativeRouter',
   Router: 'Router',
   StackRouter: 'NativeStackRouter',
   BottomTabBarRouter: 'BottomTabbar',
-  Route: 'Route'
+  Route: 'RouteHelper'
 };
 
 const PROP_MAP = {
@@ -23,6 +23,13 @@ const getFullPath = (componentByID, id, isLib = false) => {
   return isLib ? '/' : `${comp.props.path}`;
 };
 
+const getToPathFromChild = (componentByID, id, name) => {
+  const c =
+    componentByID[id].children.find(c => componentByID[c].name === name) ||
+    componentByID[id].children[0];
+  return path.normalize(getFullPath(componentByID, c));
+};
+
 const componentPropsAssigner = (componentByID, comp, compProps, isLib = false) => {
   const props = {};
   const childrenNames = comp.children.map(c => componentByID[c].name);
@@ -32,8 +39,11 @@ const componentPropsAssigner = (componentByID, comp, compProps, isLib = false) =
   if (!isLib) {
     props.path = path.normalize(getFullPath(componentByID, comp.id));
     if (compProps.to) {
-      props.to = `${props.path}/${compProps.to}`;
+      props.to = getToPathFromChild(componentByID, comp.id, compProps.to);
     }
+  }
+  if (comp.type === 'AppRouter') {
+    props.isRoot = true;
   }
   Object.keys(PROP_MAP)
     .filter(p => compProps[p])
@@ -71,7 +81,7 @@ function parseRouterFile(routersObj) {
     const libComp = componentByID[comp.source?.id];
     if (isLibComp) {
       const varName = util.capitalizeFirstLetter(libComp.name);
-      imports[varName] = `${isLib ? './' : './components/'}${varName}`;
+      imports[varName] = `${isLib ? './' : 'router/components/'}${varName}`;
     } else if (comp.type === 'Route' && pageVarName !== 'Page') {
       imports[pageVarName] = `pages/${comp.props.page}`;
     } else if (comp.type === 'BottomTabBarRouter') {
@@ -95,7 +105,7 @@ function parseRouterFile(routersObj) {
     routers.push({
       ...comp,
       path: path.normalize(getFullPath(componentByID, comp.id)),
-      to: comp.props.to ? `${comp.props.path}/${comp.props.to}` : undefined,
+      to: comp.props.to ? getToPathFromChild(componentByID, comp.id, comp.props.to) : undefined,
       hasBottomTabBarRouter: comp.children.some(
         c => componentByID[c].type === 'BottomTabBarRouter'
       ),

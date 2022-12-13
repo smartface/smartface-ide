@@ -298,7 +298,7 @@ function isEmpty(val, options) {
   const type = typeof val;
   if (type === 'object') {
     if (val && Object.keys(val).length > 0) return options.inverse(this);
-  } else if (Number(val.length) === 0) {
+  } else if ( !val || Number(val.length) === 0) {
     return options.fn(this);
   } else if (val) {
     return options.inverse(this);

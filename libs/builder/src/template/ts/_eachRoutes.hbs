@@ -1,0 +1,1 @@
+routes: [ {{#each routes}} new {{varName}}( {{#if ../basePath}} basePath {{else}} {{#if isLibComp}} {{#isEqual ../path '/'}} '' {{else}}  {{json ../path}} {{/isEqual}} {{/if}} {{/if}} )  {{#if @last}}  {{else}}, {{/if}}   {{/each}} ]

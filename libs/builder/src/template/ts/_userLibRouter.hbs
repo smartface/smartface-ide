@@ -1,9 +1,8 @@
-//@ts-ignore
-import Page from '@smartface/native/ui/page';
-//@ts-ignore
-import { NativeStackRouter, Route, Router } from '@smartface/router';
+{{#each imports}}import {{name}} from {{json from}};{{getNewLine}} {{/each}}
 
-{{#each routers}}
+export default class {{varName}} extends {{baseRouter}}  {
 
-
-{{/each}}
+    constructor(basePath: string){
+        super(basePath);
+    }
+}

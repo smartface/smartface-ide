@@ -24,6 +24,7 @@ const FORMATTER_SETTINGS = {
 
 const DEFAULT_PATHS = {
   STYLER_UTIL_FILE: path.join(__dirname, '..', 'assets', 'styler-builder.js'),
+  ROUTEHELPER_SRC_FILE: path.join(__dirname, '..', 'assets', 'ts', 'RouteHelper.ts'),
   LIBRARY_FILE_NAME: '__library__.pgx',
   LIBRARY_PAGE_NAME: '__library__',
   MODULES_PAGE_NAME: '__modules__',
