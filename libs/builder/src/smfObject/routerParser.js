@@ -93,6 +93,7 @@ function parseRouterFile(routersObj) {
         name: componentByID[c].name,
         type: componentByID[c].type,
         isLibComp,
+        path: path.normalize(getFullPath(componentByID, c)),
         varName: isLibComp
           ? util.capitalizeFirstLetter(componentByID[componentByID[c].source.id].name)
           : `$$${getVarName(componentByID, c)}`
@@ -125,6 +126,7 @@ function parseRouterFile(routersObj) {
     const childRouters = [];
     const imports = {};
     routersObj.componentByID[c].parent = null;
+    routersObj.componentByID[c].props.path = '';
     parseRouterHelper(routersObj.componentByID, c, childRouters, imports, true /* isLib */);
     return {
       fileName: util.capitalizeFirstLetter(childRouters[0].name),
