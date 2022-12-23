@@ -41,6 +41,11 @@ export default class ${{capitalizeFirstLetter libraryType}} extends BottomTabBar
         this.initTheme();
     }
 
+    get items(): TabBarItem[] {
+        //@ts-ignore
+        return this._items;
+    }
+
     initTheme() {
         //@ts-ignore
         this._items.forEach((item, index) => {

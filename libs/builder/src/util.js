@@ -1,11 +1,11 @@
-const fs = require("fs-extra");
-const path = require("path");
-const request = require("http").request;
+const fs = require('fs-extra');
+const path = require('path');
+const request = require('http').request;
 
-const rmdir = require("rmdir");
-const jsonlint = require("jsonlint");
-const dot = require("dot-object");
-const bytes = require("bytes");
+const rmdir = require('rmdir');
+const jsonlint = require('jsonlint');
+const dot = require('dot-object');
+const bytes = require('bytes');
 
 const OK = 200;
 const SMARTFACE_DESİGN_REGEXP = /\.(pgx|cpx)/;
@@ -27,30 +27,27 @@ function beautyTime(secs) {
   var divisor_for_seconds = divisor_for_minutes % 60;
   var seconds = Math.ceil(divisor_for_seconds);
 
-  var res = "";
+  var res = '';
   if (secs > 0) {
-    appendTimeStr(hours, "hour");
-    appendTimeStr(minutes, "min");
-    appendTimeStr(seconds, "sec");
-  }
-  else {
-    res = " less than a second";
+    appendTimeStr(hours, 'hour');
+    appendTimeStr(minutes, 'min');
+    appendTimeStr(seconds, 'sec');
+  } else {
+    res = ' less than a second';
   }
 
   return res;
 
   function appendTimeStr(val, str) {
     if (val) {
-      res += val + " " + str;
+      res += val + ' ' + str;
     }
     if (val > 1) {
-      res += "s";
+      res += 's';
     }
-    res += " ";
+    res += ' ';
   }
-
 }
-
 
 /**
  * @function createSafeDir
@@ -62,27 +59,25 @@ function createClearDir(path) {
   return new Promise((resolve, reject) => {
     fs.stat(path, (err, stats) => {
       var createDir = false;
-      if (err) { // if it does not exist
+      if (err) {
+        // if it does not exist
         createDir = true;
-      }
-      else {
+      } else {
         if (!stats.isDirectory()) {
           createDir = true;
         }
       }
       if (createDir) {
         mkdirpSync(path);
-        resolve("Directory is created -> " + path);
-      }
-      else {
+        resolve('Directory is created -> ' + path);
+      } else {
         rmdir(path, _err => {
           if (_err) {
             err.file = path;
             reject(err);
-          }
-          else {
+          } else {
             mkdirpSync(path);
-            resolve("Directory is removed & created -> " + path);
+            resolve('Directory is removed & created -> ' + path);
           }
         });
       }
@@ -100,28 +95,29 @@ function createUniqeTempDir(prePath) {
     fs.mkdtemp(prePath, (err, folder) => {
       if (!err) {
         resolve(folder);
-      }
-      else {
+      } else {
         reject(err);
       }
     });
   });
 }
 
-
 // safety creating directories.
 function mkdirpSync(pathStr) {
-
   var unvalidDirname = [];
   // first occurence valid directory.
   function getValidDirname(pathString) {
     const dirname = path.dirname(pathString);
 
-    if ((dirname === '.') || fs.existsSync(dirname)) {
-      unvalidDirname.push(pathString.substring(pathString.lastIndexOf(path.sep)).replace(/\\|\//gm, ''));
+    if (dirname === '.' || fs.existsSync(dirname)) {
+      unvalidDirname.push(
+        pathString.substring(pathString.lastIndexOf(path.sep)).replace(/\\|\//gm, '')
+      );
       return dirname;
     }
-    unvalidDirname.push(pathString.substring(pathString.lastIndexOf(path.sep)).replace(/\\|\//gm, ''));
+    unvalidDirname.push(
+      pathString.substring(pathString.lastIndexOf(path.sep)).replace(/\\|\//gm, '')
+    );
     return getValidDirname(path.dirname(pathString));
   }
   var res = false;
@@ -158,13 +154,10 @@ function isExistsFileDir(path) {
         res.file = stats.isFile();
         res.existing = true;
         resolve(res);
-
-      }
-      else if (err && (err.code !== "ENOENT")) {
+      } else if (err && err.code !== 'ENOENT') {
         err.file = path;
         reject(err);
-      }
-      else {
+      } else {
         resolve(res);
       }
     });
@@ -181,73 +174,99 @@ function lowercaseFirstLetter(string) {
 
 function ArrNoDupe(a) {
   var temp = {};
-  for (var i = 0; i < a.length; i++)
-    temp[a[i]] = true;
+  for (var i = 0; i < a.length; i++) temp[a[i]] = true;
   var r = [];
-  for (var k in temp)
-    r.push(k);
+  for (var k in temp) r.push(k);
   return r;
 }
 
 function readPgx(filePath) {
   return new Promise((resolve, reject) => {
-    isExistsFileDir(filePath)
-      .then(res => {
+    isExistsFileDir(filePath).then(
+      res => {
         if (res.existing && res.file) {
-          fs.readFile(filePath, "utf8", (err, data) => {
+          fs.readFile(filePath, 'utf8', (err, data) => {
             if (!err) {
-              if (!data)
-                return resolve(null);
+              if (!data) return resolve(null);
               try {
                 resolve(jsonlint.parse(data));
+              } catch (ex) {
+                reject(
+                  Object.assign(
+                    new Error('PGX JSON Parse Error \n' + ex.toString().replace(/\n/gm, '\n\t')),
+                    { file: filePath }
+                  )
+                );
               }
-              catch (ex) {
-                reject(Object.assign(new Error('PGX JSON Parse Error \n' + ex.toString().replace(/\n/gm, "\n\t")), { file: filePath }));
-              }
-            }
-            else {
-              reject(Object.assign(new Error("PGX readFile"), { file: filePath }));
+            } else {
+              reject(Object.assign(new Error('PGX readFile'), { file: filePath }));
             }
           });
+        } else {
+          reject(new Error('PGX File ENOENT' + filePath));
         }
-        else {
-          reject(new Error("PGX File ENOENT" + filePath));
-        }
-      }, err => {
+      },
+      err => {
         console.log(err.toString());
         return resolve(null);
-      });
+      }
+    );
   });
 }
 
 function readRouterFile(filePath) {
   return new Promise((resolve, reject) => {
-    isExistsFileDir(filePath)
-      .then(res => {
+    isExistsFileDir(filePath).then(
+      res => {
         if (res.existing && res.file) {
-          fs.readFile(filePath, "utf8", (err, data) => {
+          fs.readFile(filePath, 'utf8', (err, data) => {
             if (!err) {
-              if (!data)
-                return resolve(null);
+              if (!data) return resolve(null);
               try {
                 resolve(jsonlint.parse(data));
+              } catch (ex) {
+                reject(
+                  Object.assign(
+                    new Error('Router JSON Parse Error \n' + ex.toString().replace(/\n/gm, '\n\t')),
+                    { file: filePath }
+                  )
+                );
               }
-              catch (ex) {
-                reject(Object.assign(new Error('Router JSON Parse Error \n' + ex.toString().replace(/\n/gm, "\n\t")), { file: filePath }));
-              }
-            }
-            else {
-              reject(Object.assign(new Error("Router readFile"), { file: filePath }));
+            } else {
+              reject(Object.assign(new Error('Router readFile'), { file: filePath }));
             }
           });
+        } else {
+          reject(new Error('Router File ENOENT' + filePath));
         }
-        else {
-          reject(new Error("Router File ENOENT" + filePath));
-        }
-      }, err => {
+      },
+      err => {
         console.log(err.toString());
         return resolve(null);
-      });
+      }
+    );
+  });
+}
+
+function readJSON(filePath) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (!err) {
+        if (!data) return resolve(null);
+        try {
+          resolve(jsonlint.parse(data));
+        } catch (ex) {
+          reject(
+            Object.assign(
+              new Error('JSON File Parse Error \n' + ex.toString().replace(/\n/gm, '\n\t')),
+              { file: filePath }
+            )
+          );
+        }
+      } else {
+        reject(Object.assign(new Error('Read JSON File'), { file: filePath }));
+      }
+    });
   });
 }
 
@@ -258,27 +277,27 @@ function removeFile(filePath) {
         if (res.file) {
           fs.unlink(filePath);
           resolve(true);
-        }
-        else {
+        } else {
           rmdir(filePath);
           resolve(true);
         }
-      }
-      else {
+      } else {
         resolve(false);
       }
     }, reject);
   });
-
 }
 
 function writeError(err, header) {
   var msg =
-    "├─ ️☠️ ──────────── " + (header || "Generation Error") + "  ──────────────────" +
-    (err.file ? "\n├─ file ─ " + err.file : "") +
-    "\n├─ » " + (err.stack ? err.stack.toString("binary") : err.toString("binary"))
-    .replace(/\n/ig, "\n├─ » ")
-    .replace(/Error:/g, "\t");
+    '├─ ️☠️ ──────────── ' +
+    (header || 'Generation Error') +
+    '  ──────────────────' +
+    (err.file ? '\n├─ file ─ ' + err.file : '') +
+    '\n├─ » ' +
+    (err.stack ? err.stack.toString('binary') : err.toString('binary'))
+      .replace(/\n/gi, '\n├─ » ')
+      .replace(/Error:/g, '\t');
   // logToDispatcher("error", msg);
   console.error(msg);
 }
@@ -291,20 +310,17 @@ function getDiffAsObject(_obj1, _obj2) {
   var mixedObj = Object.assign({}, obj2, obj1);
 
   for (var key in mixedObj) {
-    if (obj2[key] !== obj1[key])
-      res[key] = obj2[key] || null;
+    if (obj2[key] !== obj1[key]) res[key] = obj2[key] || null;
   }
 
   return dot.object(res);
 }
 
-
 function sortComponents(components) {
-
   var componentObj = {};
-  components.forEach(item => componentObj[item.id] = item);
+  components.forEach(item => (componentObj[item.id] = item));
 
-  components.forEach(item => item.degree = getDegree(item.props.parent, componentObj));
+  components.forEach(item => (item.degree = getDegree(item.props.parent, componentObj)));
 
   function sortComponents(a, b) {
     var parentA = componentObj[a.props.parent],
@@ -312,14 +328,10 @@ function sortComponents(components) {
       compADegree = a.degree,
       compBDegree = b.degree;
 
-    if (compADegree !== compBDegree)
-      return compADegree - compBDegree;
-    else if (!parentA && parentB)
-      return -1;
-    else if (parentA && !parentB)
-      return 1;
-    else if (!parentA && !parentB)
-      return 0;
+    if (compADegree !== compBDegree) return compADegree - compBDegree;
+    else if (!parentA && parentB) return -1;
+    else if (parentA && !parentB) return 1;
+    else if (!parentA && !parentB) return 0;
 
     var indexA = parentA.props.children.indexOf(a.id),
       indexB = parentB.props.children.indexOf(b.id);
@@ -331,22 +343,33 @@ function sortComponents(components) {
 }
 
 function writeMemUsage() {
-
   var mem = process.memoryUsage();
-  console.log("\n------------- MEM USAGE ------------ ");
-  console.log("RSS ---------> ", bytes(mem.rss, {
-    unitSeparator: " "
-  }));
-  console.log("HeapTOTAL ---> ", bytes(mem.heapTotal, {
-    unitSeparator: " "
-  }));
-  console.log("heapUSED ----> ", bytes(mem.heapUsed, {
-    unitSeparator: " "
-  }));
-  console.log("external ----> ", bytes(mem.external, {
-    unitSeparator: " "
-  }));
-  console.log("-----------------------------------");
+  console.log('\n------------- MEM USAGE ------------ ');
+  console.log(
+    'RSS ---------> ',
+    bytes(mem.rss, {
+      unitSeparator: ' '
+    })
+  );
+  console.log(
+    'HeapTOTAL ---> ',
+    bytes(mem.heapTotal, {
+      unitSeparator: ' '
+    })
+  );
+  console.log(
+    'heapUSED ----> ',
+    bytes(mem.heapUsed, {
+      unitSeparator: ' '
+    })
+  );
+  console.log(
+    'external ----> ',
+    bytes(mem.external, {
+      unitSeparator: ' '
+    })
+  );
+  console.log('-----------------------------------');
 }
 
 function getDegree(parent, componentObj) {
@@ -395,7 +418,7 @@ function isSmartfaceRouterDesignFile(filename) {
 }
 
 function isStyleDesignFile(filename) {
-  return STYLE_DESIGN_REGEXP.test(filename)
+  return STYLE_DESIGN_REGEXP.test(filename);
 }
 
 module.exports = {
@@ -408,6 +431,7 @@ module.exports = {
   ArrNoDupe: ArrNoDupe,
   readPgx: readPgx,
   readRouterFile,
+  readJSON,
   writeError: writeError,
   removeFile: removeFile,
   getDiffAsObject: getDiffAsObject,

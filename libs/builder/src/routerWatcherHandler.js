@@ -1,10 +1,14 @@
 const fs = require('fs-extra');
 const path = require('path');
 const EventEmitter = require('events');
+
+const recursiveReaddir = require('recursive-readdir');
+
 const util = require('./util');
 const templateEngine = require('./core/templateEngine');
 const { getPath } = require('./config');
 const parseRouterFile = require('./smfObject/routerParser');
+const { queue } = require('async');
 
 class RouterWatcherHandler extends EventEmitter {
   isStandAlone = false;
@@ -37,9 +41,24 @@ class RouterWatcherHandler extends EventEmitter {
 
   async transpileAllRouterFiles() {
     const routerFileName = path.join(this.routerFolder, 'index.rtr');
+    const routerLibraryDir = path.join(this.routerFolder, 'library');
     let routers;
     try {
+      const libFiles = await recursiveReaddir(routerLibraryDir);
       routers = await util.readRouterFile(routerFileName);
+      let libChildren = [];
+      const q = queue(async filePath => {
+        const data = await util.readJSON(filePath);
+        libChildren.push(data[0].id);
+        data.forEach(d => (routers.componentByID[d.id] = d));
+      }, 10);
+      await new Promise((resolve, reject) => {
+        q.drain = () => {
+          routers.componentByID[routers.libRoot].children = libChildren;
+          resolve(routers);
+        };
+        q.push(libFiles);
+      });
       routers = parseRouterFile(routers);
     } catch (e) {
       return util.writeError(e, 'Router Parser');

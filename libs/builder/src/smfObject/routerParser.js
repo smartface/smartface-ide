@@ -81,7 +81,7 @@ function parseRouterFile(routersObj) {
     const libComp = componentByID[comp.source?.id];
     if (isLibComp) {
       const varName = util.capitalizeFirstLetter(libComp.name);
-      imports[varName] = `${isLib ? './' : 'router/components/'}${varName}`;
+      imports[varName] = `router/components/${varName}`;
     } else if (comp.type === 'Route' && pageVarName !== 'Page') {
       imports[pageVarName] = `pages/${comp.props.page}`;
     } else if (comp.type === 'BottomTabBarRouter') {

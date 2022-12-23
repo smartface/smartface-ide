@@ -1,1 +1,1 @@
-routes: [ {{#each routes}} new {{varName}}( {{#if ../basePath}} basePath {{else}} {{#if isLibComp}} {{json ./path}}, {{json name}}, {{@index}} {{/if}} {{/if}} )  {{#if @last}}  {{else}}, {{/if}}   {{/each}} ]
+routes: [ {{#each routes}} new {{varName}}( {{#if ../basePath}} {{#if isLibComp}} `${basePath}{{./path}}`, {{json name}}, {{@index}} {{else}} basePath  {{/if}} {{else}} {{#if isLibComp}} {{json ./path}}, {{json name}}, {{@index}} {{/if}} {{/if}} )  {{#if @last}}  {{else}}, {{/if}}   {{/each}} ]
