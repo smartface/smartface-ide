@@ -1,6 +1,6 @@
 {
   "name": "@smartface/builder",
-  "version": "0.10.7-alpha.3",
+  "version": "0.10.7-alpha.4",
   "description": "Smartface Builder",
   "bin": {
     "smfcTranspiler": "bin/exec.js",
