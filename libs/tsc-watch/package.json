@@ -1,6 +1,6 @@
 {
   "name": "@smartface/tsc-watch",
-  "version": "0.10.7-alpha.4",
+  "version": "0.10.7",
   "description": "Smartface TS Compiler - Watch",
   "main": "./lib/index.js",
   "publishConfig": {
