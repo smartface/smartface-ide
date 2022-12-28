@@ -12,6 +12,7 @@
     "emitDecoratorMetadata": true,
     "downlevelIteration": true,
     "resolveJsonModule": true,
+    "sourceMap": true,
     "module": "commonjs",
     "allowJs": false,
     "moduleResolution": "node",

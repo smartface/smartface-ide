@@ -507,9 +507,11 @@ export default class Workspace {
   private watchers: any = {};
   private jsRegExp = /\.js$|\.json$|\.jsx$/;
   private tsDistPath: string;
+  private nodeCrc: number;
 
   constructor(options) {
     this.path = options.path || '/home/ubuntu/workspace/';
+    this.nodeCrc = Math.floor((Math.random() * 10000000000) % 1000000000);
     this.projectJSONPath = join(
       this.path,
       options.projectJSONPath || join('config', 'project.json')
@@ -535,7 +537,7 @@ export default class Workspace {
         relativePath = join(relativePath.split(path.sep).join('/'));
         this.index.files[`script://${relativePath}`] = {
           fullPath: file,
-          crc: Math.floor((Math.random() * 10000000000) % 1000000000),
+          crc: this.nodeCrc,
           date: new Date()
         };
       });
