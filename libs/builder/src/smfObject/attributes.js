@@ -1,7 +1,6 @@
 const attributes = [
   "id",
   "isPassword",
-  "image",
   "name",
   "page",
   "htmlText",
