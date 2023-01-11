@@ -24,6 +24,7 @@ export default function createImageApi(app: Express, options: any = {}) {
   const logger = LogToConsole.instance;
   logger.log('🖥️ image serving ready...');
   const workspace = new Workspace({
+    securityGuid: 'fake_security',
     path: wsPath
   });
   app.get(

@@ -11,6 +11,7 @@ export default class GetFilesIndexCommand implements Command<any> {
     const emuWs = WsMap.instance.getDeviceWebSocket(opts.deviceInfo.deviceID);
     if (!emuWs.workspace) {
       emuWs.workspace = new Workspace({
+        securityGuid: emuWs.securityGuid,
         path: ConfigurationService.instance.getWorkspacePath(),
         projectID: '',
         device: new Device(opts.deviceInfo)

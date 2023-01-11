@@ -2,7 +2,7 @@ import { IncomingMessage } from 'http';
 import WebSocket = require('ws');
 import { isAllowedConnection, isIDEConnection } from '../../core/connection';
 import { EmulatorWS } from '../emulator/EmulatorWS';
-import { hasAlreadyInitIDEWebSocket, initIDEWebSocket } from '../ide';
+import { hasAlreadyInitIDEWebSocket, initIDEWebSocket, removeIDEWebSocket } from '../ide';
 import LogToConsole from './LogToConsole';
 import KeepAliveInterval from './util/KeepAliveInterval';
 import sendResetTimeout from './util/sendResetTimeout';
@@ -16,10 +16,11 @@ export default function connectionResolver(wss: WebSocket.Server) {
   wss.on('connection', (ws: WebSocket & { upgradeReq: IncomingMessage }) => {
     let deviceId: string;
     let browserGuid: string;
+    let securityGuid: string;
     const url = ws.upgradeReq.url;
     const host = ws.upgradeReq.headers.host;
     const isOverUSB = host.includes('localhost:');
-    logger.info('New connection request ', url, host);
+    logger.info('🌐 New connection request ', url, host);
     const urlParts = url.replace('//', '/').split('/');
     if (urlParts.length === 0) {
       return;
@@ -28,23 +29,25 @@ export default function connectionResolver(wss: WebSocket.Server) {
     if (isIDEConnection(service)) {
       // $HOST:$PORT/UI/$BROWSER_GUID/$SECURITY_GUID
       browserGuid = urlParts[2];
+      securityGuid = urlParts[3];
       deviceId = 'browser';
     } else if (urlParts.length === 3) {
       // Backward compatible fix
       // $HOST:$PORT/$SERVICE/$DEVICE_ID
       deviceId = urlParts[2];
       browserGuid = deviceId;
+      securityGuid = browserGuid;
     } else if (urlParts.length === 5) {
       // $HOST:$PORT/$SERVICE/$DEVICE_ID/$BROWSER_GUID/$SECURITY_GUID
       deviceId = urlParts[2];
       browserGuid = urlParts[3];
+      securityGuid = urlParts[4];
     } else {
-      return logger.error('[ERROR] Url pattern is not supported', url);
+      return logger.error('🚨 Url pattern is not supported', url);
     }
-    logger.log('Trying to connect for', service, deviceId);
 
     if (!isAllowedConnection(service)) {
-      logger.log('Terminating ws request', service);
+      logger.log('🚨 Unallowed service... terminating ws request', service);
       return ws.terminate();
     }
 
@@ -54,26 +57,34 @@ export default function connectionResolver(wss: WebSocket.Server) {
     ws.on('close', () => {
       keepAliveTimer.stop();
       sendResetTimeout.clear(deviceId);
-      logger.info('Socket is closed by user');
+      logger.info('💔 Socket is closed by user ', service, 'B→', browserGuid);
+      if (isIDEConnection(service)) {
+        removeIDEWebSocket(browserGuid);
+      }
     });
 
     ws.on('error', e => {
-      logger.error('[ERROR]', 'Socket error : ', e);
+      logger.error('🚨 Socket error: ', e);
     });
 
     if (isIDEConnection(service)) {
       if (!hasAlreadyInitIDEWebSocket(browserGuid)) {
         initIDEWebSocket(browserGuid, ws);
       }
-      logger.log('Connecting', service, browserGuid);
     } else {
       let emuWsItem = wsMap.getDeviceWebSocket(deviceId);
+      console.log(
+        'EmuWsItem is available in cache -> ',
+        !!emuWsItem,
+        'S→',
+        emuWsItem?.securityGuid
+      );
       if (!emuWsItem) {
-        emuWsItem = new EmulatorWS(deviceId, browserGuid, isOverUSB);
+        emuWsItem = new EmulatorWS(deviceId, browserGuid, isOverUSB, securityGuid);
       }
       emuWsItem.setupServiceWs(service, ws);
-      logger.log('Connecting', service, deviceId);
     }
+    logger.log('📡 Connecting', service, browserGuid, '←B S→', securityGuid);
   });
-  logger.log('Ready to connect');
+  logger.log('🌍 Ready to connect ...');
 }

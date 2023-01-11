@@ -303,7 +303,10 @@ function sort(obj) {
 }
 
 function walkFolder(folder, callback) {
-  console.time('⏳ walk ' + folder);
+  /*
+  const baseName = String(Math.random() * 10000) + '_' + path.basename(folder);
+  console.time('⏳ Walk ' + baseName);
+  */
   var files: { [key: string]: { relativePath: string; stats: FileStatType } } = {};
   Object.defineProperty(files, '__ofBaseFolder', {
     enumerable: false,
@@ -328,7 +331,9 @@ function walkFolder(folder, callback) {
   }
 
   function endHandler() {
-    console.timeEnd('⏳ walk ' + folder);
+    /*
+    console.timeEnd('⏳ Walk ' + baseName);
+    */
     callback(files);
   }
 }
@@ -465,6 +470,7 @@ function processFolder(
  * @param {workspaceOptions} options - Required. Creates a workspace with required options
  */
 export default class Workspace {
+  static nodeDate = new Date();
   /** @type {string} */
   private path: string;
 
@@ -511,7 +517,6 @@ export default class Workspace {
 
   constructor(options) {
     this.path = options.path || '/home/ubuntu/workspace/';
-    this.nodeCrc = Math.floor((Math.random() * 10000000000) % 1000000000);
     this.projectJSONPath = join(
       this.path,
       options.projectJSONPath || join('config', 'project.json')
@@ -525,10 +530,11 @@ export default class Workspace {
     this.projectID = options.projectID;
     this.hashBinaries = options.hashBinaries;
     this.device = options.device instanceof Device ? options.device : new Device(options.device);
+    this.nodeCrc = CRC32.buf(options.securityGuid);
   }
 
   private async addNodeModulesToIndex(cb) {
-    console.time('⏳ walk node_modules');
+    console.time('⏳ Walk node_modules');
     const files = await recursiveReaddir(join(this.scriptsPath, 'node_modules'));
     files
       .filter(file => this.jsRegExp.test(file))
@@ -538,10 +544,10 @@ export default class Workspace {
         this.index.files[`script://${relativePath}`] = {
           fullPath: file,
           crc: this.nodeCrc,
-          date: new Date()
+          date: Workspace.nodeDate
         };
       });
-    console.timeEnd('⏳ walk node_modules');
+    console.timeEnd('⏳ Walk node_modules');
     cb();
   }
 
@@ -884,7 +890,7 @@ export default class Workspace {
       return watcher.start();
     });
     if (this.tsDistPath) {
-      console.info('Watcher TS path: ', this.tsDistPath);
+      console.info('Watcher TS path: ', path.relative(this.path, this.tsDistPath));
       nsfw(
         this.tsDistPath,
         async _events => {
