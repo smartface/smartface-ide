@@ -1,6 +1,6 @@
 {
   "name": "@smartface/library-reader",
-  "version": "0.10.10-alpha.0",
+  "version": "0.10.10",
   "description": "Reads and writes to library files.",
   "dependencies": {
     "async": "^2.6.1"
