@@ -13,6 +13,8 @@ const merge = require('@smartface/styler/lib/utils/merge');
 const isExistsFileDir = util.isExistsFileDir;
 const fileService = require('./fileService');
 const ATTRIBUTES = require('../smfObject/attributes');
+const { parseClassName, regexpOfParserClassName } = require('../util/parseClassNameHelper');
+const dotProp = require('dot-prop');
 var UNDEFINED_ATTRIBUTES_OBJECT = ATTRIBUTES.undefinedObject;
 
 // const IGNORE_DEFAULTS = {
@@ -143,6 +145,13 @@ module.exports = (function() {
           }
         });
         let bundle = merge.apply(null, styles);
+        Object.keys(bundle)
+          .filter(key => regexpOfParserClassName.test(key))
+          .forEach(key => {
+            const parsedKey = parseClassName(key);
+            dotProp.set(bundle, parsedKey, bundle[key]);
+            delete bundle[key];
+          });
         let parentTheme = indexJSON.parent || defaultParentTheme;
         getThemePack(path.dirname(themeDir), parentTheme, defaultParentTheme).then(
           parentThemePack => {
@@ -152,7 +161,9 @@ module.exports = (function() {
               variablesJson = fs.readJsonSync(path.join(themeDir, 'variables.json')) || {};
             } catch (e) {}
             if (parentThemePack) {
+              //console.time('Merge:' + themeName);
               bundle = merge(parentThemePack.bundle, bundle);
+              //console.timeEnd('Merge:' + themeName);
               variablesJson = Object.assign(parentThemePack.variables, variablesJson);
             }
             const bundleString = JSON.stringify(bundle);
@@ -169,10 +180,12 @@ module.exports = (function() {
               if (err) return reject(err);
               themeBundles[themeName] = { bundle, variables: variablesJson };
               resolve(themeBundles[themeName]);
+              const parentThemeStr = parentTheme || '';
+              const repeatLen = 25 - parentThemeStr.length;
               console.log(
-                `├─ 📦  Generated Bundle --> ${parentTheme || '-'.repeat(15)} -> ${path.basename(
-                  file
-                )}`
+                `├─ 📦  Generated Bundle ➪  ${'—'.repeat(
+                  repeatLen / 2
+                )} ${parentThemeStr} ${'—'.repeat(repeatLen / 2)}➞ ${themeName}`
               );
             });
           },

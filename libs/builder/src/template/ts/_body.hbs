@@ -6,8 +6,8 @@
     };
     {{/isRepeatedView}}{{/if}}
 
-    class {{varName}} extends {{#if isModuleComp}}{{libraryType}} {{else}} {{#if isLibraryComponent}}{{libraryType}} {{else}} {{#if isContainerComponent}}styleableContainerComponentMixin({{type}}) {{else}} styleableComponentMixin({{type}})
-    {{/if}}{{/if}}{{/if}} {
+    class {{varName}} extends {{#isEqual type 'TabBarItem'}} styleableComponentMixin<any>({{type}}) {{else}}  {{#if isModuleComp}}{{libraryType}} {{else}} {{#if isLibraryComponent}}{{libraryType}} {{else}} {{#if isContainerComponent}}styleableContainerComponentMixin({{type}}) {{else}} styleableComponentMixin({{type}})
+    {{/if}}{{/if}}{{/if}} {{/isEqual}} {
     {{#if smfObjects}} {{#isRepeatedView type}} {{else}}
     protected _children: {{capitalizeFirstLetter varName}}Children = {};
     get children(): Readonly<{{capitalizeFirstLetter varName}}Children> {
