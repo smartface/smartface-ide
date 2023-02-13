@@ -22,6 +22,8 @@ const walk = require('walk');
 const nsfw = require('@smartface/nsfw-prebuild');
 const recursiveReaddir = require('recursive-readdir');
 
+let counter = 0;
+
 export type FileStatType = {
   dev: number;
   mode: number;
@@ -508,6 +510,7 @@ export default class Workspace {
   private index: any;
 
   private device: Device;
+  private id = counter++;
 
   private watcherEnabled: boolean;
   private watchers: any = {};
@@ -534,7 +537,7 @@ export default class Workspace {
   }
 
   private async addNodeModulesToIndex(cb) {
-    console.time('⏳ Walk node_modules');
+    console.time('⏳ Walk node_modules' + this.id);
     const files = await recursiveReaddir(join(this.scriptsPath, 'node_modules'));
     files
       .filter(file => this.jsRegExp.test(file))
@@ -547,7 +550,7 @@ export default class Workspace {
           date: Workspace.nodeDate
         };
       });
-    console.timeEnd('⏳ Walk node_modules');
+    console.timeEnd('⏳ Walk node_modules' + this.id);
     cb();
   }
 
@@ -559,7 +562,7 @@ export default class Workspace {
     if (this.watcherEnabled) {
       return sort({ ...this.index, files: { ...this.index.files } });
     }
-    console.time('📄 WS indexed');
+    console.time('📄 WS indexed' + this.id);
     this.settings = {};
     this.imagesPath;
     const jsonObj = await getProjectJSON(path.dirname(this.projectJSONPath));
@@ -643,7 +646,7 @@ export default class Workspace {
         if (taskCount !== 0) return;
         index = sort(index);
         this.startWatcher();
-        console.timeEnd('📄 WS indexed');
+        console.timeEnd('📄 WS indexed' + this.id);
         resolve(index);
       };
       index.projectID = this.getProjectID(true);

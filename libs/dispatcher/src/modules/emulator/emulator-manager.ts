@@ -2,7 +2,7 @@ import { DeviceInfoType } from '../../core/CommandTypes';
 import {
   sendToIDEEmulatorsAreReady,
   sendToIDEEmulatorsAreUpdated,
-  sendToIDEEmulatorsAreUpdating,
+  sendToIDEEmulatorsAreUpdating
 } from '../ide';
 import WsMap from '../shared/WsMap';
 import { EmulatorStatus } from './EmulatorWS';
@@ -55,7 +55,7 @@ export async function sendReadyConnectedDevices() {
   sendToIDEEmulatorsAreReady(
     WsMap.instance
       .getAllDeviceWebSockets()
-      .map(i => i.deviceInfo)
+      .map(i => (i.isConnected ? i.deviceInfo : undefined))
       .filter(d => !!d)
   );
 }

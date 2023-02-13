@@ -32,6 +32,8 @@ export enum EmulatorStatus {
   NOCHANGES = 'NOCHANGES'
 }
 
+const EMULATOR_WS_TIMEOUT = 5000;
+
 export class EmulatorWS extends EventEmitter {
   //cache deviceinfos.
   static deviceInfos: Map<string, DeviceInfoType> = new Map();
@@ -51,6 +53,8 @@ export class EmulatorWS extends EventEmitter {
   private _status: EmulatorStatus;
   private sentCrcSum: string = 'empty';
   private readyCrcSum: string = 'empty';
+  private clearTimers: any[] = [];
+  public isConnected: boolean = false;
   public set status(_status: EmulatorStatus) {
     this._status = _status;
     this.emit('statusChange', _status);
@@ -62,7 +66,12 @@ export class EmulatorWS extends EventEmitter {
     return this._status;
   }
   public errors: string[] = [];
-  constructor(public deviceId: string, public browserGuid: string, public isOverUSB: boolean, public securityGuid: string) {
+  constructor(
+    public deviceId: string,
+    public browserGuid: string,
+    public isOverUSB: boolean,
+    public securityGuid: string
+  ) {
     super();
     this.logger = LogToConsole.instance;
     EmulatorWS.setDeviceWs(deviceId, this);
@@ -82,6 +91,7 @@ export class EmulatorWS extends EventEmitter {
   }
 
   setupServiceWs(service: string, ws: WebSocket) {
+    this.clearCloseTimers();
     let serviceWs: WebsocketWithStream = this.serviceWsMap.get(service) as WebsocketWithStream;
     if (serviceWs && serviceWs.readyState === WebSocket.OPEN) {
       LogToConsole.instance.log('Terminating existing websocket', service, this.deviceId);
@@ -91,6 +101,7 @@ export class EmulatorWS extends EventEmitter {
     }
     this.serviceWsMap.set(service, ws);
     serviceWs.on('message', message => {
+      this.isConnected = true;
       parseEachJSON(message.toString(), async (err, parsedMessage: CommandType) => {
         if (err) {
           this.errors.push('parseEachJSON Error', err);
@@ -177,18 +188,25 @@ export class EmulatorWS extends EventEmitter {
     });
 
     serviceWs.on('close', e => {
-      //this.emit('close');
-      EmulatorWS.clearDeviceWs(this.deviceId);
-      if (this.workspace) {
-        this.workspace.stopWatcher();
+      if (this.clearTimers.length) {
+        return;
       }
-      this.serviceWsMap.delete(service);
-      this._status = EmulatorStatus.READY;
+      this.isConnected = false;
       sendReadyConnectedDevices();
+      this.clearTimers.push(
+        setTimeout(() => {
+          //this.emit('close');
+          EmulatorWS.clearDeviceWs(this.deviceId);
+          if (this.workspace) {
+            this.workspace.stopWatcher();
+          }
+          this.serviceWsMap.delete(service);
+          this._status = EmulatorStatus.READY;
+          sendReadyConnectedDevices();
+          this.clearTimers = [];
+        }, EMULATOR_WS_TIMEOUT)
+      );
     });
-    if (this.deviceInfo) {
-      sendReadyConnectedDevices();
-    }
   }
 
   async sendUpdateCode(isTriggerViaIDE: boolean = false, cb?: (errs: string[]) => void) {
@@ -234,6 +252,11 @@ export class EmulatorWS extends EventEmitter {
         }
       }
     );
+  }
+
+  clearCloseTimers() {
+    this.clearTimers.forEach(t => clearTimeout(t));
+    this.clearTimers = [];
   }
 }
 /*

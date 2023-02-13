@@ -7,14 +7,17 @@ import { findFilePath, parse } from './URIParser';
 const fs = require('fs');
 const path = require('path');
 
+let counter = 0;
+
 export function getFilesData(options: {
   files: string[];
   os: OSType;
   indexFiles: FileInfoType[];
 }): Promise<Buffer> {
   const { os, files, indexFiles } = options;
+  let count = counter++;
   const isIOS = os === 'iOS';
-  console.time('🗳️ Files packed:');
+  console.time(`🗳️ Files packed:${count}`);
   const basePaths = ConfigurationService.instance.getProjectPaths()[os];
   const filePackager = new FilePackager();
   files.forEach(file => {
@@ -26,7 +29,7 @@ export function getFilesData(options: {
 
   fs.writeFile(
     path.join(ConfigurationService.instance.getTempPath(), 'requested_files_debug.json'),
-    JSON.stringify({files}, null, '\t'),
+    JSON.stringify({ files }, null, '\t'),
     () => {
       console.log('🔖  Requested files has been written requested_debug.json');
     }
@@ -44,7 +47,7 @@ export function getFilesData(options: {
             console.log('🔖 ', ConfigurationService.instance.getTempPath(), ' - zip writing done.');
           }
         );
-        console.timeEnd('🗳️ Files packed:');
+        console.timeEnd(`🗳️ Files packed:${count}`);
         resolve(data);
       }
     });
