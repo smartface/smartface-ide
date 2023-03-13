@@ -1,4 +1,3 @@
-
 import iOSMap from './iosmap';
 import getScaleFactor from './androidresourcescalefactor';
 
@@ -8,55 +7,51 @@ import getScaleFactor from './androidresourcescalefactor';
  * @param {DeviceOptions} options - Device information provided as parameter
  */
 export default class Device {
+  scaleFactor: number;
+  resourceFolderOrder: string[];
+  os: 'Android' | 'iOS';
+  brandModel: string;
+  brandName: string;
+  imageExtensionOrder: number[];
+  cpu: 'x86' | 'ARM';
 
-    scaleFactor: number;
-    resourceFolderOrder: string[];
-    os:  'Android'| 'iOS';
-    brandModel: string;
-    brandName: string;
-    imageExtensionOrder: number[];
-    cpu: 'x86' | 'ARM';
-
-    constructor(options){ 
+  constructor(options) {
     Object.assign(this, options);
 
-
-    if (this.os === "Android") {
-
-        var firstPreferedFolder = (this.resourceFolderOrder || [])[0];
-        if (firstPreferedFolder)
-            this.scaleFactor = getScaleFactor(firstPreferedFolder);
-        else {
-            this.scaleFactor = 4; //defaults to Android mdpi factor
+    if (this.os === 'Android') {
+      var firstPreferedFolder = (this.resourceFolderOrder || [])[0];
+      if (firstPreferedFolder) this.scaleFactor = getScaleFactor(firstPreferedFolder);
+      else {
+        this.scaleFactor = 4; //defaults to Android mdpi factor
+      }
+    } else if (this.os === 'iOS') {
+      if (iOSMap[this.brandModel]) this.brandModel = iOSMap[this.brandModel];
+      var order = [2, 3, 1];
+      if (/(Max|Pro|Plus| XS| X$)(?!XR)|(1[2-9])/g.test(this.brandModel)) {
+        order = [3, 2, 1];
+      } else {
+        var nonRetinaDevices = [
+          'iPhone',
+          'iPhone 2G',
+          'iPhone 3G',
+          'iPhone 3GS',
+          'iPod Touch (1 Gen)',
+          'iPod Touch (2 Gen)',
+          'iPod Touch (3 Gen)',
+          'iPad',
+          'iPad 3G',
+          'iPad 2',
+          'iPad Mini'
+        ];
+        if (nonRetinaDevices.indexOf(this.brandName) > -1) {
+          order = [1, 2, 3];
         }
-
-
+      }
+      this.imageExtensionOrder = order;
+      this.scaleFactor = order[0];
     }
-    else if (this.os === "iOS") {
-        if (iOSMap[this.brandModel])
-            this.brandModel = iOSMap[this.brandModel];
-        var order = [2, 3, 1];
-        if (/(Plus| XS| X$)(?!XR)/g.test(this.brandModel)) {
-            order = [3, 2, 1];
-        }
-        else {
-            var nonRetinaDevices = ["iPhone", "iPhone 2G", "iPhone 3G",
-                "iPhone 3GS", "iPod Touch (1 Gen)", "iPod Touch (2 Gen)",
-                "iPod Touch (3 Gen)", "iPad", "iPad 3G", "iPad 2", "iPad Mini"
-            ];
-            if (nonRetinaDevices.indexOf(this.brandName) > -1) {
-                order = [1, 2, 3];
-            }
-        }
-        this.imageExtensionOrder = order;
-        this.scaleFactor = order[0];
-    }
+  }
 }
-}
-
-
-
-
 
 /**
  * Device info provided as device options

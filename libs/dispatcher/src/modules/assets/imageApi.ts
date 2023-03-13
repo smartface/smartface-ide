@@ -124,7 +124,13 @@ export default function createImageApi(app: Express, options: any = {}) {
   function sendImageBuffer(source, densityRatio, zoomLevel, imageFormat, response) {
     Jimp.read(source, function(err, image) {
       if (err) return handleError(err, response);
-      image.scale(densityRatio * zoomLevel /** fileInfo.scaleWith*/, function(err, image) {
+      if (zoomLevel >= 1) {
+        return image.getBuffer(IMAGE_FORMAT[imageFormat] || Jimp.AUTO, function(err, buffer) {
+          if (err) return handleError(err, response);
+          sendData(buffer, imageFormat, response);
+        });
+      }
+      image.scale(zoomLevel /** fileInfo.scaleWith*/, function(err, image) {
         if (err) return handleError(err, response);
         image.getBuffer(IMAGE_FORMAT[imageFormat] || Jimp.AUTO, function(err, buffer) {
           if (err) return handleError(err, response);
