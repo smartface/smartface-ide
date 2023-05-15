@@ -83,7 +83,8 @@ function parseRouterFile(routersObj) {
       const varName = util.capitalizeFirstLetter(libComp.name);
       imports[varName] = `router/components/${varName}`;
     } else if (comp.type === 'Route' && pageVarName !== 'Page') {
-      imports[pageVarName] = `pages/${comp.props.page}`;
+      //IMP: performance issue on iOS devices
+      //imports[pageVarName] = `pages/${comp.props.page}`;
     } else if (comp.type === 'BottomTabBarRouter') {
       imports['BottomTabbar'] = isLib ? '../BottomTabbar' : `./BottomTabbar`;
     }
@@ -114,6 +115,8 @@ function parseRouterFile(routersObj) {
       varName: `$$${getVarName(componentByID, comp.id)}`,
       baseRouter: BASE_ROUTER_MAP[comp.type],
       pageVarName: pageVarName,
+      //IMP: performance issue on iOS devices
+      pageRequirePath: `pages/${comp.props.page}`,
       props: componentPropsAssigner(componentByID, comp, comp.props, isLib)
     });
     comp.children.forEach(c => parseRouterHelper(componentByID, c, routers, imports, isLib));

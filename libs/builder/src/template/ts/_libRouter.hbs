@@ -23,7 +23,10 @@ import NavigationController from '@smartface/native/ui/navigationcontroller';
         );
         {{#isEqual type "StackRouter"}}this._renderer = createRenderer(new NavigationController() as any);{{/isEqual}}
         {{#each routes}}this.{{name}} = this._routes[{{@index}}] as any;{{/each}} 
-        {{#isEqual type "Route"}} this.build = (...args) => new {{pageVarName}} (...args); {{/isEqual}}
+        {{#isEqual type "Route"}} this.build = (...args) => {
+            const {{pageVarName}}  = require({{json pageRequirePath}}).default; 
+            return new {{pageVarName}} (...args); 
+        };{{/isEqual}}
     }
     {{#isEmpty routes }} {{else}} get children(){ return [ {{#each routes}} this.{{name}} {{#if @last}}  {{else}}, {{/if}}   {{/each}} ] } {{/isEmpty}}
 }
