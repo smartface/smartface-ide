@@ -181,7 +181,8 @@ module.exports = (function() {
               themeBundles[themeName] = { bundle, variables: variablesJson };
               resolve(themeBundles[themeName]);
               const parentThemeStr = parentTheme || '';
-              const repeatLen = 25 - parentThemeStr.length;
+              let repeatLen = 25 - parentThemeStr.length;
+              repeatLen = repeatLen > 0 ? repeatLen : 0;
               console.log(
                 `├─ 📦  Generated Bundle ➪  ${'—'.repeat(
                   repeatLen / 2
